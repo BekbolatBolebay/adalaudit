@@ -1,0 +1,51 @@
+
+> my-project@0.1.0 dev
+> next dev --turbo
+
+⚠ Invalid next.config.mjs options detected: 
+⚠     Unrecognized key(s) in object: 'turbo' at "experimental"
+⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+⚠ Warning: Next.js inferred your workspace root, but it may not be correct.
+ We detected multiple lockfiles and selected the directory of /home/bekbolat/package-lock.json as the root directory.
+ To silence this warning, set `turbopack.root` in your Next.js config, or consider removing one of the lockfiles if it's not needed.
+   See https://nextjs.org/docs/app/api-reference/config/next-config-js/turbopack#root-directory for more information.
+ Detected additional lockfiles: 
+   * /home/bekbolat/Жүктемелер/adal-audit-forensic-platform/pnpm-lock.yaml
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://100.0.2.1:3000
+- Environments: .env
+- Experiments (use with caution):
+  ? turbo (invalid experimental key)
+
+✓ Starting...
+✓ Ready in 310ms
+
+thread 'tokio-runtime-worker' (16888) panicked at turbopack/crates/turbopack-core/src/ident.rs:352:34:
+byte index 17 is not a char boundary; it is inside 'е' (bytes 16..18) of `Жүктемелер_adal-audit-forensic-platform__next-internal_server_app_page_actions_9c3c0fe8`
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+-----
+[1m[31mFATAL[39m[0m: An unexpected Turbopack error occurred. A panic log has been written to /tmp/next-panic-140cc95b6c27af31e34948de720160a.log.
+
+To help make Turbopack better, report this error by ]8;;https://github.com/vercel/next.js/discussions/new?category=turbopack-error-report&title=Turbopack%20Error%3A%20Failed%20to%20write%20app%20endpoint%20%2Fpage&body=Turbopack%20version%3A%20%600c06f068%60%0ANext.js%20version%3A%20%600.0.0%60%0A%0AError%20message%3A%0A%60%60%60%0AFailed%20to%20write%20app%20endpoint%20%2Fpage%0A%0ACaused%20by%3A%0A-%20byte%20index%2017%20is%20not%20a%20char%20boundary%3B%20it%20is%20inside%20%27%D0%B5%27%20%28bytes%2016..18%29%20of%20%60%D0%96%D2%AF%D0%BA%D1%82%D0%B5%D0%BC%D0%B5%D0%BB%D0%B5%D1%80_adal-audit-forensic-platform__next-internal_server_app_page_actions_9c3c0fe8%60%0A%0ADebug%20info%3A%0A-%20Execution%20of%20get_written_endpoint_with_issues_operation%20failed%0A-%20Execution%20of%20endpoint_write_to_disk%20failed%0A-%20Execution%20of%20%3CAppEndpoint%20as%20Endpoint%3E%3A%3Aoutput%20failed%0A-%20Failed%20to%20write%20app%20endpoint%20%2Fpage%0A-%20Execution%20of%20all_server_paths%20failed%0A-%20Execution%20of%20server_path%20failed%0A-%20Execution%20of%20%2AFileContent%3A%3Ahash%20failed%0A-%20Execution%20of%20%2AAssetContent%3A%3Afile_content%20failed%0A-%20Execution%20of%20%3CSourceMapAsset%20as%20Asset%3E%3A%3Acontent%20failed%0A-%20Execution%20of%20%3CEcmascriptBuildNodeEntryChunk%20as%20GenerateSourceMap%3E%3A%3Agenerate_source_map%20failed%0A-%20Execution%20of%20%2A%3CCode%20as%20GenerateSourceMap%3E%3A%3Agenerate_source_map%20failed%0A-%20Execution%20of%20EcmascriptBuildNodeEntryChunk%3A%3Acode%20failed%0A-%20Execution%20of%20%3CNodeJsChunkingContext%20as%20ChunkingContext%3E%3A%3Achunk_path%20failed%0A-%20Execution%20of%20AssetIdent%3A%3Aoutput_name%20failed%0A-%20byte%20index%2017%20is%20not%20a%20char%20boundary%3B%20it%20is%20inside%20%27%D0%B5%27%20%28bytes%2016..18%29%20of%20%60%D0%96%D2%AF%D0%BA%D1%82%D0%B5%D0%BC%D0%B5%D0%BB%D0%B5%D1%80_adal-audit-forensic-platform__next-internal_server_app_page_actions_9c3c0fe8%60%0A%60%60%60&labels=Turbopack,Turbopack%20Panic%20Backtrace\clicking here.]8;;\
+-----
+
+ GET / 500 in 2.8s (compile: 2.8s, render: 62ms)
+
+-----
+[1m[31mFATAL[39m[0m: An unexpected Turbopack error occurred. A panic log has been written to /tmp/next-panic-140cc95b6c27af31e34948de720160a.log.
+
+To help make Turbopack better, report this error by ]8;;https://github.com/vercel/next.js/discussions/new?category=turbopack-error-report&title=Turbopack%20Error%3A%20Failed%20to%20write%20app%20endpoint%20%2Fpage&body=Turbopack%20version%3A%20%600c06f068%60%0ANext.js%20version%3A%20%600.0.0%60%0A%0AError%20message%3A%0A%60%60%60%0AFailed%20to%20write%20app%20endpoint%20%2Fpage%0A%0ACaused%20by%3A%0A-%20byte%20index%2017%20is%20not%20a%20char%20boundary%3B%20it%20is%20inside%20%27%D0%B5%27%20%28bytes%2016..18%29%20of%20%60%D0%96%D2%AF%D0%BA%D1%82%D0%B5%D0%BC%D0%B5%D0%BB%D0%B5%D1%80_adal-audit-forensic-platform__next-internal_server_app_page_actions_9c3c0fe8%60%0A%0ADebug%20info%3A%0A-%20Execution%20of%20get_written_endpoint_with_issues_operation%20failed%0A-%20Execution%20of%20endpoint_write_to_disk%20failed%0A-%20Execution%20of%20%3CAppEndpoint%20as%20Endpoint%3E%3A%3Aoutput%20failed%0A-%20Failed%20to%20write%20app%20endpoint%20%2Fpage%0A-%20Execution%20of%20all_server_paths%20failed%0A-%20Execution%20of%20server_path%20failed%0A-%20Execution%20of%20%2AFileContent%3A%3Ahash%20failed%0A-%20Execution%20of%20%2AAssetContent%3A%3Afile_content%20failed%0A-%20Execution%20of%20%3CSourceMapAsset%20as%20Asset%3E%3A%3Acontent%20failed%0A-%20Execution%20of%20%3CEcmascriptBuildNodeEntryChunk%20as%20GenerateSourceMap%3E%3A%3Agenerate_source_map%20failed%0A-%20Execution%20of%20%2A%3CCode%20as%20GenerateSourceMap%3E%3A%3Agenerate_source_map%20failed%0A-%20Execution%20of%20EcmascriptBuildNodeEntryChunk%3A%3Acode%20failed%0A-%20Execution%20of%20%3CNodeJsChunkingContext%20as%20ChunkingContext%3E%3A%3Achunk_path%20failed%0A-%20Execution%20of%20AssetIdent%3A%3Aoutput_name%20failed%0A-%20byte%20index%2017%20is%20not%20a%20char%20boundary%3B%20it%20is%20inside%20%27%D0%B5%27%20%28bytes%2016..18%29%20of%20%60%D0%96%D2%AF%D0%BA%D1%82%D0%B5%D0%BC%D0%B5%D0%BB%D0%B5%D1%80_adal-audit-forensic-platform__next-internal_server_app_page_actions_9c3c0fe8%60%0A%60%60%60&labels=Turbopack,Turbopack%20Panic%20Backtrace\clicking here.]8;;\
+-----
+
+ GET / 500 in 20ms (compile: 10ms, render: 10ms)
+
+-----
+[1m[31mFATAL[39m[0m: An unexpected Turbopack error occurred. A panic log has been written to /tmp/next-panic-140cc95b6c27af31e34948de720160a.log.
+
+To help make Turbopack better, report this error by ]8;;https://github.com/vercel/next.js/discussions/new?category=turbopack-error-report&title=Turbopack%20Error%3A%20Failed%20to%20write%20app%20endpoint%20%2Fpage&body=Turbopack%20version%3A%20%600c06f068%60%0ANext.js%20version%3A%20%600.0.0%60%0A%0AError%20message%3A%0A%60%60%60%0AFailed%20to%20write%20app%20endpoint%20%2Fpage%0A%0ACaused%20by%3A%0A-%20byte%20index%2017%20is%20not%20a%20char%20boundary%3B%20it%20is%20inside%20%27%D0%B5%27%20%28bytes%2016..18%29%20of%20%60%D0%96%D2%AF%D0%BA%D1%82%D0%B5%D0%BC%D0%B5%D0%BB%D0%B5%D1%80_adal-audit-forensic-platform__next-internal_server_app_page_actions_9c3c0fe8%60%0A%0ADebug%20info%3A%0A-%20Execution%20of%20get_written_endpoint_with_issues_operation%20failed%0A-%20Execution%20of%20endpoint_write_to_disk%20failed%0A-%20Execution%20of%20%3CAppEndpoint%20as%20Endpoint%3E%3A%3Aoutput%20failed%0A-%20Failed%20to%20write%20app%20endpoint%20%2Fpage%0A-%20Execution%20of%20all_server_paths%20failed%0A-%20Execution%20of%20server_path%20failed%0A-%20Execution%20of%20%2AFileContent%3A%3Ahash%20failed%0A-%20Execution%20of%20%2AAssetContent%3A%3Afile_content%20failed%0A-%20Execution%20of%20%3CSourceMapAsset%20as%20Asset%3E%3A%3Acontent%20failed%0A-%20Execution%20of%20%3CEcmascriptBuildNodeEntryChunk%20as%20GenerateSourceMap%3E%3A%3Agenerate_source_map%20failed%0A-%20Execution%20of%20%2A%3CCode%20as%20GenerateSourceMap%3E%3A%3Agenerate_source_map%20failed%0A-%20Execution%20of%20EcmascriptBuildNodeEntryChunk%3A%3Acode%20failed%0A-%20Execution%20of%20%3CNodeJsChunkingContext%20as%20ChunkingContext%3E%3A%3Achunk_path%20failed%0A-%20Execution%20of%20AssetIdent%3A%3Aoutput_name%20failed%0A-%20byte%20index%2017%20is%20not%20a%20char%20boundary%3B%20it%20is%20inside%20%27%D0%B5%27%20%28bytes%2016..18%29%20of%20%60%D0%96%D2%AF%D0%BA%D1%82%D0%B5%D0%BC%D0%B5%D0%BB%D0%B5%D1%80_adal-audit-forensic-platform__next-internal_server_app_page_actions_9c3c0fe8%60%0A%60%60%60&labels=Turbopack,Turbopack%20Panic%20Backtrace\clicking here.]8;;\
+-----
+
+ GET / 500 in 14ms (compile: 6ms, render: 7ms)
