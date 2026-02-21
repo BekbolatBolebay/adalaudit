@@ -14,9 +14,10 @@ interface ForensicChatProps {
     context?: any
     isVisible: boolean
     onClose: () => void
+    isEmbedded?: boolean
 }
 
-export function ForensicChat({ context, isVisible, onClose }: ForensicChatProps) {
+export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }: ForensicChatProps) {
     const { messages, input = "", handleInputChange, handleSubmit, isLoading } = useChat({
         api: "/api/chat",
         body: { context },
@@ -30,7 +31,7 @@ export function ForensicChat({ context, isVisible, onClose }: ForensicChatProps)
         }
     }, [messages])
 
-    if (!isVisible) return null
+    if (!isVisible && !isEmbedded) return null
 
     const quickActions = [
         { label: "Рисктерді қорытындылау", prompt: "Осы құжаттағы негізгі коррупциялық рисктерді қысқаша атап бер." },
@@ -47,7 +48,12 @@ export function ForensicChat({ context, isVisible, onClose }: ForensicChatProps)
     }
 
     return (
-        <Card className="fixed bottom-4 right-4 w-[400px] h-[600px] flex flex-col shadow-2xl border-primary/20 bg-background/95 backdrop-blur-sm z-50 animate-in slide-in-from-bottom-5">
+        <Card className={cn(
+            "flex flex-col border-primary/20 bg-background/95 backdrop-blur-sm z-50",
+            isEmbedded
+                ? "h-full w-full border-none shadow-none rounded-none bg-transparent"
+                : "fixed bottom-4 right-4 w-[400px] h-[600px] shadow-2xl animate-in slide-in-from-bottom-5"
+        )}>
             <CardHeader className="p-4 border-b bg-primary/5 flex flex-row items-center justify-between">
                 <div className="flex items-center gap-2">
                     <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20">
@@ -58,16 +64,21 @@ export function ForensicChat({ context, isVisible, onClose }: ForensicChatProps)
                         <p className="text-[10px] text-muted-foreground">Талдау бойынша онлайн кеңес</p>
                     </div>
                 </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive" onClick={onClose}>
-                    <X className="w-4 h-4" />
-                </Button>
+                {!isEmbedded && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive" onClick={onClose}>
+                        <X className="w-4 h-4" />
+                    </Button>
+                )}
             </CardHeader>
 
             <CardContent className="flex-1 p-0 overflow-hidden relative">
                 <ScrollArea className="h-full p-4" ref={scrollRef}>
                     <div className="space-y-4 pb-4">
                         {messages.length === 0 && (
-                            <div className="flex flex-col items-center justify-center h-[400px] text-center space-y-4 px-6 text-muted-foreground">
+                            <div className={cn(
+                                "flex flex-col items-center justify-center text-center space-y-4 px-6 text-muted-foreground",
+                                isEmbedded ? "h-[300px] mt-20" : "h-[400px]"
+                            )}>
                                 <div className="p-4 rounded-full bg-primary/5 border border-dashed border-primary/20">
                                     <MessageCircle className="w-8 h-8 text-primary/40" />
                                 </div>

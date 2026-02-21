@@ -24,7 +24,6 @@ export function HistoryView({ onItemClick }: { onItemClick: (fingerprint: string
                     riskScore: parsed.riskScore,
                     date: new Date(parsed.timestamp).toLocaleDateString(),
                     status: parsed.riskScore > 80 ? "Critical" : "Analyzed",
-                    tokens: parsed.tokens || 0
                 }
             }
             return null

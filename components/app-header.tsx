@@ -32,9 +32,9 @@ export function AppHeader({
         </h1>
         <Badge
           variant="outline"
-          className="border-red-glow/30 bg-red-glow/5 text-red-glow text-[10px] font-mono tracking-wider animate-pulse"
+          className="border-primary/40 text-primary bg-primary/5 text-[10px] font-mono tracking-wider animate-pulse-glow"
         >
-          {locale === "kz" ? "ЗЕРТТЕЛУДЕ" : "В РАЗРАБОТКЕ"}
+          {locale === "kz" ? "БЕЛСЕНДІ" : "LIVE"}
         </Badge>
       </div>
 

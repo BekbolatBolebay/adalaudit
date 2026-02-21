@@ -208,24 +208,17 @@ export function Dashboard() {
   // Side effect to save results to cache when completed
   useEffect(() => {
     if (!isAnalyzing && !isTranslating && !isGeneratingProtocol && analysisObject && translationObject && protocolData && !isFromCache && filePayload) {
-      // Calculate estimated tokens
-      // Approx: 1 token = 4 chars for English, maybe 2 for RU/KZ. Let's use 3 as average.
-      const inputEstimated = Math.round((filePayload.fileData.length) / 3)
-      const outputEstimated = Math.round((JSON.stringify(analysisObject).length + JSON.stringify(translationObject).length) / 3)
-      const totalTokens = inputEstimated + outputEstimated
-
       const fingerprint = `cache_${filePayload.fileName}_${filePayload.fileSize}`
       const cacheData = {
         analysis: analysisObject,
         translation: translationObject,
         protocol: protocolData,
-        tokens: totalTokens,
         timestamp: new Date().toISOString(),
         fileName: filePayload.fileName,
         riskScore: analysisObject.risk_score
       }
 
-      console.log("[Cache] Saving results + tokens:", filePayload.fileName, totalTokens)
+      console.log("[Cache] Saving results:", filePayload.fileName)
       localStorage.setItem(fingerprint, JSON.stringify(cacheData))
 
       // Also update history index
@@ -272,142 +265,140 @@ export function Dashboard() {
           </div>
         )}
 
-        <main className="flex-1 overflow-hidden">
-          {activeView === "scanner" ? (
-            <ScrollArea className="h-full">
-              <div className="mx-auto max-w-5xl px-4 md:px-6 py-6 flex flex-col gap-6 md:gap-8">
+        <main className="flex-1 overflow-hidden flex">
+          <div className="flex-1 overflow-hidden">
+            {activeView === "scanner" ? (
+              <ScrollArea className="h-full">
+                <div className="mx-auto max-w-5xl px-4 md:px-6 py-6 flex flex-col gap-6 md:gap-8">
 
-                {/* Scanner Section */}
-                <ForensicScanner
-                  onScanComplete={handleScanComplete}
-                  onReset={handleReset}
-                  analysisResult={(analysisObject || cachedAnalysis) as any}
-                  isLoading={isAnalyzing}
-                  error={analysisError}
-                  isCached={isFromCache}
-                />
+                  {/* Scanner Section */}
+                  <ForensicScanner
+                    onScanComplete={handleScanComplete}
+                    onReset={handleReset}
+                    analysisResult={(analysisObject || cachedAnalysis) as any}
+                    isLoading={isAnalyzing}
+                    error={analysisError}
+                    isCached={isFromCache}
+                  />
 
-                {/* Analysis Details - Extracted from Scanner for better hierarchy */}
-                {(analysisObject || cachedAnalysis) && (analysisObject || cachedAnalysis).risk_score !== undefined && (
-                  <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-top-2 duration-500">
-                    {/* AI Summary Block */}
-                    <div className="rounded-xl border border-primary/20 bg-primary/[0.02] p-5 shadow-sm">
-                      <p className="text-xs text-secondary-foreground leading-relaxed">
-                        {t("lang.toggle") === "RU"
-                          ? (analysisObject || cachedAnalysis).summary_kz
-                          : (analysisObject || cachedAnalysis).summary_ru}
-                      </p>
-                    </div>
-
-                    {/* Violations List */}
-                    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
-                      <div className="flex items-center gap-2 mb-4">
-                        <AlertTriangle className="h-4 w-4 text-red-600" />
-                        <span className="text-xs font-bold text-foreground uppercase tracking-tight">
-                          {t("lang.toggle") === "RU" ? "ТАБЫЛҒАН БҰЗУШЫЛЫҚТАР" : "НАЙДЕННЫЕ НАРУШЕНИЯ"} ({(analysisObject || cachedAnalysis).violations?.length || 0})
-                        </span>
+                  {/* Analysis Details - Extracted from Scanner for better hierarchy */}
+                  {(analysisObject || cachedAnalysis) && (analysisObject || cachedAnalysis).risk_score !== undefined && (
+                    <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-top-2 duration-500">
+                      {/* AI Summary Block */}
+                      <div className="rounded-xl border border-primary/20 bg-primary/[0.02] p-5 shadow-sm">
+                        <p className="text-xs text-secondary-foreground leading-relaxed">
+                          {t("lang.toggle") === "RU"
+                            ? (analysisObject || cachedAnalysis).summary_kz
+                            : (analysisObject || cachedAnalysis).summary_ru}
+                        </p>
                       </div>
-                      <div className="flex flex-col gap-3">
-                        {(analysisObject || cachedAnalysis).violations?.map((v: any, i: number) => (
-                          <div key={i} className="flex flex-col gap-2 rounded-lg border border-border bg-secondary/20 px-4 py-3 transition-colors hover:bg-secondary/40">
-                            <div className="flex items-start gap-3">
-                              <Badge
-                                className={cn(
-                                  "shrink-0 font-mono text-[9px] tracking-wider border",
-                                  v.severity === "critical"
-                                    ? "border-red-500/40 bg-red-500/10 text-red-600"
-                                    : v.severity === "high"
-                                      ? "border-orange-500/40 bg-orange-500/10 text-orange-600"
-                                      : "border-yellow-500/40 bg-yellow-500/10 text-yellow-600"
-                                )}
-                              >
-                                {v.code}
-                              </Badge>
-                              <p className="text-xs text-secondary-foreground leading-relaxed font-medium">{t("lang.toggle") === "RU" ? v.text_kz : v.text_ru}</p>
-                            </div>
-                            {v.original_fragment && (
-                              <div className="ml-14 rounded border border-border bg-background/50 px-2.5 py-1.5 italic">
-                                <code className="text-[10px] font-mono text-muted-foreground break-all">
-                                  {'"'}{v.original_fragment}{'"'}
-                                </code>
+
+                      {/* Violations List */}
+                      <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+                        <div className="flex items-center gap-2 mb-4">
+                          <AlertTriangle className="h-4 w-4 text-red-600" />
+                          <span className="text-xs font-bold text-foreground uppercase tracking-tight">
+                            {t("lang.toggle") === "RU" ? "ТАБЫЛҒАН БҰЗУШЫЛЫҚТАР" : "НАЙДЕННЫЕ НАРУШЕНИЯ"} ({(analysisObject || cachedAnalysis).violations?.length || 0})
+                          </span>
+                        </div>
+                        <div className="flex flex-col gap-3">
+                          {(analysisObject || cachedAnalysis).violations?.map((v: any, i: number) => (
+                            <div key={i} className="flex flex-col gap-2 rounded-lg border border-border bg-secondary/20 px-4 py-3 transition-colors hover:bg-secondary/40">
+                              <div className="flex items-start gap-3">
+                                <Badge
+                                  className={cn(
+                                    "shrink-0 font-mono text-[9px] tracking-wider border",
+                                    v.severity === "critical"
+                                      ? "border-red-500/40 bg-red-500/10 text-red-600"
+                                      : v.severity === "high"
+                                        ? "border-orange-500/40 bg-orange-500/10 text-orange-600"
+                                        : "border-yellow-500/40 bg-yellow-500/10 text-yellow-600"
+                                  )}
+                                >
+                                  {v.code}
+                                </Badge>
+                                <p className="text-xs text-secondary-foreground leading-relaxed font-medium">{t("lang.toggle") === "RU" ? v.text_kz : v.text_ru}</p>
                               </div>
-                            )}
-                          </div>
-                        ))}
+                              {v.original_fragment && (
+                                <div className="ml-14 rounded border border-border bg-background/50 px-2.5 py-1.5 italic">
+                                  <code className="text-[10px] font-mono text-muted-foreground break-all">
+                                    {'"'}{v.original_fragment}{'"'}
+                                  </code>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
 
-                {/* Toggle for Comparison */}
-                {(isTranslating || (translationObject?.translated_kz || cachedTranslation)) && (
-                  <div className="flex justify-center -mt-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowComparison(!showComparison)}
-                      className="text-[10px] font-mono tracking-wider text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
-                    >
-                      <div className={cn("w-1.5 h-1.5 rounded-full", showComparison ? "bg-primary" : "bg-muted-foreground/30")} />
-                      {showComparison ? (t("lang.toggle") === "RU" ? "САЛЫСТЫРУДЫ ЖАСЫРУ" : "СКРЫТЬ СРАВНЕНИЕ") : (t("lang.toggle") === "RU" ? "ТОЛЫҚ САЛЫСТЫРУДЫ КӨРСЕТУ" : "ПОКАЗАТЬ ПОЛНОЕ СРАВНЕНИЕ")}
-                    </Button>
-                  </div>
-                )}
+                  {/* Toggle for Comparison */}
+                  {(isTranslating || (translationObject?.translated_kz || cachedTranslation)) && (
+                    <div className="flex justify-center -mt-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowComparison(!showComparison)}
+                        className="text-[10px] font-mono tracking-wider text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
+                      >
+                        <div className={cn("w-1.5 h-1.5 rounded-full", showComparison ? "bg-primary" : "bg-muted-foreground/30")} />
+                        {showComparison ? (t("lang.toggle") === "RU" ? "САЛЫСТЫРУДЫ ЖАСЫРУ" : "СКРЫТЬ СРАВНЕНИЕ") : (t("lang.toggle") === "RU" ? "ТОЛЫҚ САЛЫСТЫРУДЫ КӨРСЕТУ" : "ПОКАЗАТЬ ПОЛНОЕ СРАВНЕНИЕ")}
+                      </Button>
+                    </div>
+                  )}
 
-                {/* Forensic Comparison - shown after scan, now optional */}
-                {showComparison && (isTranslating || (translationObject?.translated_kz || cachedTranslation)) && (
-                  <div className="animate-in fade-in zoom-in-95 duration-500">
-                    <ForensicComparison
-                      translationResult={(translationObject || cachedTranslation) as any}
-                      isLoading={isTranslating}
-                    />
-                  </div>
-                )}
+                  {/* Forensic Comparison - shown after scan, now optional */}
+                  {showComparison && (isTranslating || (translationObject?.translated_kz || cachedTranslation)) && (
+                    <div className="animate-in fade-in zoom-in-95 duration-500">
+                      <ForensicComparison
+                        translationResult={(translationObject || cachedTranslation) as any}
+                        isLoading={isTranslating}
+                      />
+                    </div>
+                  )}
 
-                {/* Protocol Section - Moved to bottom per user request */}
-                {(isGeneratingProtocol || protocolData) && (
-                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-                    <InspectionProtocol
-                      protocolData={protocolData}
-                      isLoading={isGeneratingProtocol}
-                    />
-                  </div>
-                )}
-              </div>
-            </ScrollArea>
-          ) : (
-            <ScrollArea className="h-full">
-              <div className="mx-auto max-w-5xl px-4 md:px-6 py-6">
-                {activeView === "cases" && <HistoryView onItemClick={handleHistoryLoad} />}
-                {activeView === "legal" && <LegalView />}
-                {activeView === "settings" && <SettingsView />}
-              </div>
-            </ScrollArea>
+                  {/* Protocol Section - Moved to bottom per user request */}
+                  {(isGeneratingProtocol || protocolData) && (
+                    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                      <InspectionProtocol
+                        protocolData={protocolData}
+                        isLoading={isGeneratingProtocol}
+                      />
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            ) : (
+              <ScrollArea className="h-full">
+                <div className="mx-auto max-w-5xl px-4 md:px-6 py-6">
+                  {activeView === "cases" && <HistoryView onItemClick={handleHistoryLoad} />}
+                  {activeView === "legal" && <LegalView />}
+                  {activeView === "settings" && <SettingsView />}
+                </div>
+              </ScrollArea>
+            )}
+          </div>
+
+          {/* Right Sidebar for AI Chat */}
+          {(analysisObject || cachedAnalysis) && activeView === "scanner" && (
+            <div className="hidden lg:flex w-[350px] border-l border-border bg-sidebar shrink-0 flex-col animate-in slide-in-from-right-4 duration-500">
+              <ForensicChat
+                isVisible={true}
+                onClose={() => { }}
+                isEmbedded={true}
+                context={{
+                  analysis: analysisObject || cachedAnalysis,
+                  fileName: filePayload?.fileName
+                }}
+              />
+            </div>
           )}
         </main>
       </div>
 
-      {analysisObject && (
-        <ForensicChat
-          isVisible={isChatVisible}
-          onClose={() => setIsChatVisible(false)}
-          context={{
-            analysis: analysisObject,
-            fileName: filePayload?.fileName
-          }}
-        />
-      )}
 
-      {/* Global Chat Trigger Button */}
-      {analysisObject && !isChatVisible && (
-        <Button
-          onClick={() => setIsChatVisible(true)}
-          className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-2xl animate-in zoom-in-50 duration-300 z-40 bg-primary hover:bg-primary/90"
-        >
-          <Bot className="h-6 w-6" />
-        </Button>
-      )}
     </div>
   )
 }
