@@ -3,7 +3,9 @@
 import { useI18n } from "@/lib/i18n"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
-import { FileSearch, Languages, Loader2 } from "lucide-react"
+import { FileSearch, Languages, Loader2, Copy, Check, Download } from "lucide-react"
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
 import type { TranslationResult, HighlightSpan } from "@/lib/types"
 
 export function ForensicComparison({
@@ -14,6 +16,85 @@ export function ForensicComparison({
   isLoading: boolean
 }) {
   const { t } = useI18n()
+  const [copiedOriginal, setCopiedOriginal] = useState(false)
+  const [copiedTranslation, setCopiedTranslation] = useState(false)
+
+  const handleCopy = async (text: string, setCopied: (v: boolean) => void) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error("Failed to copy text: ", err)
+    }
+  }
+
+  const handleDownload = (text: string, filename: string) => {
+    const blob = new Blob([text], { type: "text/plain" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  const getHighlightSpans = (text: string, violations: any[]): HighlightSpan[] => {
+    if (!text) return []
+    if (!violations || violations.length === 0) {
+      return [{ text, type: "normal", tooltip: null }]
+    }
+
+    // Sort violations by their occurrence in the text to process them sequentially
+    const sortedViolations = [...violations]
+      .filter(v => v.fragment)
+      .map(v => ({
+        ...v,
+        index: text.indexOf(v.fragment)
+      }))
+      .filter(v => v.index !== -1)
+      .sort((a, b) => a.index - b.index)
+
+    const spans: HighlightSpan[] = []
+    let lastIndex = 0
+
+    for (const v of sortedViolations) {
+      // Add normal text before the violation
+      if (v.index > lastIndex) {
+        spans.push({
+          text: text.substring(lastIndex, v.index),
+          type: "normal",
+          tooltip: null
+        })
+      }
+
+      // Add the violation fragment
+      spans.push({
+        text: v.fragment,
+        type: v.type as "violation" | "warning",
+        tooltip: v.tooltip
+      })
+
+      lastIndex = v.index + v.fragment.length
+    }
+
+    // Add remaining text
+    if (lastIndex < text.length) {
+      spans.push({
+        text: text.substring(lastIndex),
+        type: "normal",
+        tooltip: null
+      })
+    }
+
+    return spans
+  }
+
+  const originalText = translationResult?.original_text || ""
+  const violationSpans = getHighlightSpans(originalText, translationResult?.violations || [])
+  const translatedText = translationResult?.translated_kz || ""
 
   return (
     <div className="flex flex-col gap-4">
@@ -38,17 +119,41 @@ export function ForensicComparison({
               {t("forensic.original")}
             </span>
             {translationResult && (
-              <Badge className="ml-auto bg-red-glow/10 text-red-glow border border-red-glow/30 text-[9px] font-mono">
-                {translationResult.violation_count} VIOLATIONS
-              </Badge>
+              <>
+                <Badge className="ml-auto bg-red-glow/10 text-red-glow border border-red-glow/30 text-[9px] font-mono">
+                  {(translationResult.violation_count || 0)} VIOLATIONS
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 ml-1 text-muted-foreground hover:text-foreground"
+                  onClick={() => handleCopy(originalText, setCopiedOriginal)}
+                  title="Copy original text"
+                >
+                  {copiedOriginal ? (
+                    <Check className="h-3 w-3 text-primary" />
+                  ) : (
+                    <Copy className="h-3 w-3" />
+                  )}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                  onClick={() => handleDownload(originalText, "original.txt")}
+                  title="Download original text"
+                >
+                  <Download className="h-3 w-3" />
+                </Button>
+              </>
             )}
           </div>
-          <ScrollArea className="h-[360px]">
-            {isLoading ? (
-              <LoadingState text="Gemini 2.5 Flash" subtitle="Analyzing original text..." />
-            ) : translationResult?.original_highlighted ? (
+          <ScrollArea className="h-[500px]">
+            {isLoading && !translationResult?.original_text ? (
+              <LoadingState text="Gemini 2.5 Flash Lite" subtitle="Analyzing original text..." />
+            ) : translationResult?.original_text ? (
               <div className="p-4 font-mono text-xs leading-relaxed whitespace-pre-wrap">
-                {translationResult.original_highlighted.map(
+                {violationSpans.map(
                   (span: HighlightSpan, i: number) => {
                     if (span.type === "violation") {
                       return (
@@ -96,19 +201,46 @@ export function ForensicComparison({
             <span className="text-xs font-semibold text-foreground">
               {t("forensic.translation")}
             </span>
-            <Badge className="ml-auto bg-primary/10 text-primary border border-primary/30 text-[9px] font-mono">
-              AI LEGAL KZ
-            </Badge>
+            {translationResult && (
+              <>
+                <Badge className="ml-auto bg-primary/10 text-primary border border-primary/30 text-[9px] font-mono">
+                  AI LEGAL KZ
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 ml-1 text-muted-foreground hover:text-foreground"
+                  onClick={() => handleCopy(translatedText, setCopiedTranslation)}
+                  title="Copy translation"
+                >
+                  {copiedTranslation ? (
+                    <Check className="h-3 w-3 text-primary" />
+                  ) : (
+                    <Copy className="h-3 w-3" />
+                  )}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                  onClick={() => handleDownload(translatedText, "translation.txt")}
+                  title="Download translation"
+                >
+                  <Download className="h-3 w-3" />
+                </Button>
+              </>
+            )}
           </div>
-          <ScrollArea className="h-[360px]">
-            {isLoading ? (
+          <ScrollArea className="h-[500px]">
+            {isLoading && !translationResult?.translated_kz ? (
               <LoadingState
-                text="Gemini 2.5 Flash"
+                text="Gemini 2.5 Flash Lite"
                 subtitle="Generating legal translation..."
               />
             ) : translationResult?.translated_kz ? (
               <div className="p-4 font-mono text-xs leading-relaxed whitespace-pre-wrap text-secondary-foreground">
                 {translationResult.translated_kz.split("\n").map((line, i) => {
+                  if (!line) return <br key={i} />
                   if (line.includes("[!]")) {
                     return (
                       <span key={i}>
@@ -141,8 +273,8 @@ export function ForensicComparison({
 }
 
 function LoadingState({ text, subtitle }: { text: string; subtitle: string }) {
-  const label = text === "Gemini 2.5 Flash"
-    ? "Gemini 2.5 Flash"
+  const label = text === "Gemini 2.5 Flash Lite"
+    ? "Gemini 2.5 Flash Lite"
     : text
 
   return (

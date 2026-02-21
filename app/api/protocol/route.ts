@@ -18,8 +18,11 @@ const protocolSchema = z.object({
 })
 
 export async function POST(req: Request) {
+  let fileName = "document.pdf"
   try {
-    const { violations, fileName, summary_ru } = await req.json()
+    const body = await req.json()
+    const { violations, summary_ru } = body
+    fileName = body.fileName || fileName
 
     if (!violations?.length) {
       return Response.json({ error: "No violations data" }, { status: 400 })
@@ -43,7 +46,7 @@ export async function POST(req: Request) {
       .join("\n")
 
     const { output } = await generateText({
-      model: google("gemini-2.0-flash"),
+      model: google("gemini-flash-latest"),
       output: Output.object({ schema: protocolSchema }),
       messages: [
         {
@@ -76,16 +79,25 @@ ${violationsText}
       investigator: "Сериков А.М., Майор ДЭР",
     })
   } catch (error: any) {
-    console.error("Protocol generation error:", error)
+    console.error(`[API Protocol] Error for ${fileName}:`, error)
 
-    if (error.status === 429 || error.message?.includes("quota") || error.message?.includes("limit") || process.env.DEMO_MODE === "true") {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const isQuotaError =
+      error.status === 429 ||
+      error.status === 404 ||
+      errorMessage.toLowerCase().includes("quota") ||
+      errorMessage.toLowerCase().includes("limit") ||
+      errorMessage.toLowerCase().includes("not found") ||
+      errorMessage.toLowerCase().includes("not enabled");
+
+    if (isQuotaError || process.env.DEMO_MODE === "true") {
+      console.log(`[API Protocol] Triggering mock fallback for ${fileName}`)
       const { getMockProtocol } = await import("@/lib/demo-data")
-      const { fileName } = await req.json().catch(() => ({ fileName: "document.pdf" }))
-      return Response.json(getMockProtocol(fileName))
+      return Response.json(getMockProtocol(fileName || "document.pdf"))
     }
 
     return Response.json(
-      { error: error instanceof Error ? error.message : "Protocol generation failed" },
+      { error: errorMessage },
       { status: 500 }
     )
   }

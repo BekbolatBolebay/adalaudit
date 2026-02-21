@@ -30,30 +30,19 @@ export const getMockAnalysis = (fileName: string): AnalysisResult => ({
     ],
     summary_ru: "В документе обнаружены критические признаки манипуляций: намеренная замена символов и значительное завышение цен (ок. 45%). Общий риск экономических потерь оценивается как ВЫСОКИЙ.",
     summary_kz: "Құжатта манипуляцияның критикалық белгілері анықталды: таңбаларды әдейі алмастыру және бағаны айтарлықтай өсіру (шамамен 45%). Экономикалық шығындардың жалпы қаупі ЖОҒАРЫ деп бағаланады.",
-    original_text: "extracted",
-    market_analysis: {
-        product_name: "Ноутбук High-End конфигурации",
-        tender_price: 850000,
-        market_price: 580000,
-        markup_percent: 46.5,
-        quantity: 10,
-        total_loss: 2700000,
-        is_overpriced: true
-    }
+    original_text: "Техническая спецификация на закупку Nоутбуков Lаptор для oфиса для нужд Департамента. Процессор только Intel Core i7-13700H без возможности эквивалента. Цена за единицу: 850,000 KZT. Контракт на 10 единиц.",
 })
 
 export const getMockTranslation = (fileName: string): TranslationResult => ({
-    original_highlighted: [
-        { text: "Техническая спецификация на закупку ", type: "normal" },
-        { text: "Nоутбуков", type: "violation", tooltip: "Подмена символа 'o' на латинский" },
-        { text: " для нужд Департамента. ", type: "normal" },
-        { text: "Процессор Intel Core i7-13700H", type: "warning", tooltip: "Отсутствует фраза 'или эквивалент'" },
-        { text: ". Цена: ", type: "normal" },
-        { text: "850 000 тенге", type: "violation", tooltip: "Превышение рыночной цены на 46%" },
-        { text: ".", type: "normal" }
+    original_text: "Техническая спецификация на закупку Nоутбуков Lаptор для oфиса для нужд Департамента. Процессор только Intel Core i7-13700H без возможности эквивалента. Цена за единицу: 850,000 KZT. Контракт на 10 единиц.",
+    violations: [
+        { fragment: "Nоутбуков", type: "violation", tooltip: "Подмена символа 'o' на латинский" },
+        { fragment: "Lаptор", type: "violation", tooltip: "Подмена символов 'a' и 'o' на латинские" },
+        { fragment: "Intel Core i7-13700H без возможности эквивалента", type: "warning", tooltip: "Отсутствует фраза 'или эквивалент'" },
+        { fragment: "850,000 KZT", type: "violation", tooltip: "Превышение рыночной цены на 46%" },
     ],
-    translated_kz: "Департамент қажеттіліктері үшін [!] ноутбуктер сатып алуға арналған техникалық ерекшелік. Процессор Intel Core i7-13700H (немесе баламасы көрсетілмеген). Бағасы: [!] 850 000 теңге (нарықтық бағадан жоғары).",
-    violation_count: 3
+    translated_kz: "Департамент қажеттіліктері үшін [!] ноутбуктер сатып алуға арналған техникалық ерекшелік. [!] Intel Core i7-13700H процессоры (немесе баламасы көрсетілмеген). Бірлік бағасы: [!] 850 000 теңге (нарықтық бағадан жоғары). Жиынтық 10 дана.",
+    violation_count: 4
 })
 
 export const getMockProtocol = (fileName: string): ProtocolData => ({
@@ -76,3 +65,37 @@ export const getMockProtocol = (fileName: string): ProtocolData => ({
     legal_ref_kz: "ҚР ҚК 189-бабы (Сенiп тапсырылған бөтен мүлiктi иемденiп алу немесе ысырап ету), ҚР 'Мемлекеттік сатып алу туралы' Заңының 21-бабы.",
     investigator: "Сериков А.М., Майор ДЭР"
 })
+
+export const mockCaseHistory = [
+    { id: "CASE-2024-001", fileName: "tech_spec_it.pdf", riskScore: 87, date: "2024-02-15", status: "Analyzed" },
+    { id: "CASE-2024-002", fileName: "tender_045.docx", riskScore: 42, date: "2024-02-18", status: "Analyzed" },
+    { id: "CASE-2024-003", fileName: "audit_report_v2.pdf", riskScore: 94, date: "2024-02-20", status: "Critical" },
+    { id: "CASE-2024-004", fileName: "invoice_X10.pdf", riskScore: 15, date: "2024-02-21", status: "Clean" },
+]
+
+export const mockLegalLibrary = [
+    {
+        title_ru: "Уголовный Кодекс РК",
+        title_kz: "ҚР Қылмыстық кодексі",
+        articles: ["ст. 189", "ст. 190", "ст. 366"],
+        summary_ru: "Основной закон, определяющий преступления в сфере экономики и коррупции.",
+        summary_kz: "Экономика және сыбайлас жемқорлық саласындағы қылмыстарды анықтайтын негізгі заң.",
+        link: "https://adilet.zan.kz/rus/docs/K1400000226"
+    },
+    {
+        title_ru: "Закон 'О государственных закупках'",
+        title_kz: "«Мемлекеттік сатып алу туралы» Заң",
+        articles: ["ст. 21", "ст. 24", "ст. 43"],
+        summary_ru: "Регулирует процесс закупок, устанавливает требования к прозрачности и конкуренции.",
+        summary_kz: "Сатып алу процесін реттейді, ашықтық пен бәсекелестікке қойылатын талаптарды белгілейді.",
+        link: "https://adilet.zan.kz/rus/docs/Z1500000434"
+    },
+    {
+        title_ru: "Бюджетный Кодекс РК",
+        title_kz: "ҚР Бюджет кодексі",
+        articles: ["ст. 97", "ст. 110"],
+        summary_ru: "Определяет правила использования бюджетных средств и финансовую отчетность.",
+        summary_kz: "Бюджет қаражатын пайдалану ережелері мен қаржылық есептілікті анықтайды.",
+        link: "https://adilet.zan.kz/rus/docs/K080000095_"
+    }
+]

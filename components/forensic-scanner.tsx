@@ -13,7 +13,6 @@ import {
 import { useI18n } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 import { RiskGauge } from "./risk-gauge"
-import { MarketAnalysisCard } from "./market-analysis-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { AnalysisResult, Violation } from "@/lib/types"
@@ -47,14 +46,18 @@ export function ForensicScanner({
   onReset,
   analysisResult,
   isLoading,
+  error,
+  isCached,
 }: {
   onScanComplete: (
-    result: AnalysisResult | null,
+    file: File,
     payload: { fileData: string; fileName: string; mediaType: string }
   ) => void
   onReset: () => void
   analysisResult: AnalysisResult | null
   isLoading?: boolean
+  error?: Error | null
+  isCached?: boolean
 }) {
   const { t, locale } = useI18n()
   const [phase, setPhase] = useState<ScanPhase>("idle")
@@ -68,14 +71,45 @@ export function ForensicScanner({
 
   // Update phase when isLoading changes externally
   useEffect(() => {
+    if (isLoading) {
+      setPhase("analyzing")
+
+      // Granular step logic
+      if (analysisResult?.summary_ru || analysisResult?.summary_kz) {
+        setScanStepIndex(2) // Final summary step
+      } else if (analysisResult?.violations && analysisResult.violations.length > 0) {
+        setScanStepIndex(1) // Middle step
+      } else {
+        setScanStepIndex(0) // First step (still connecting/initial analysis)
+      }
+    }
+
     if (!isLoading && analysisResult) {
+      console.log("[Scanner] Loading complete.")
       setPhase("complete")
       setScanStepIndex(3)
     }
-  }, [isLoading, analysisResult])
+
+    if (error) {
+      console.error("[Scanner] Error encountered:", error)
+      setPhase("error")
+      setErrorMessage(error.message || "AI API Error")
+    }
+  }, [isLoading, analysisResult, error])
 
   const startScan = useCallback(
     async (file: File) => {
+      console.log("[Scanner] startScan for:", file.name)
+
+      const ext = file.name.split(".").pop()?.toLowerCase()
+      const isSupported = ext === "pdf" || ext === "docx" || ext === "txt"
+
+      if (!isSupported) {
+        setPhase("error")
+        setErrorMessage(locale === "kz" ? "Қолдау көрсетілмейтін файл форматы. PDF немесе DOCX жүктеңіз." : "Неподдерживаемый формат файла. Пожалуйста, используйте PDF или DOCX.")
+        return
+      }
+
       setFileName(file.name)
       setPhase("reading")
       setErrorMessage("")
@@ -83,14 +117,18 @@ export function ForensicScanner({
 
       try {
         // Step 1: Read file
-        const base64Data = await fileToBase64(file)
-        const mediaType = getMediaType(file)
+        console.log("[Scanner] Reading file...")
+        const [base64Data, mediaType] = await Promise.all([
+          fileToBase64(file),
+          Promise.resolve(getMediaType(file))
+        ])
+        console.log("[Scanner] Read complete. Delegating...")
 
         setPhase("analyzing")
         setScanStepIndex(1)
 
         // Delegate execution to parent for parallelization
-        onScanComplete(null as any, {
+        onScanComplete(file, {
           fileData: base64Data,
           fileName: file.name,
           mediaType,
@@ -100,9 +138,8 @@ export function ForensicScanner({
         setErrorMessage(err instanceof Error ? err.message : "Unknown error")
       }
     },
-    [onScanComplete]
+    [onScanComplete, locale]
   )
-
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -156,7 +193,7 @@ export function ForensicScanner({
               {isScanning
                 ? (locale === "kz" ? "ЗЕРТТЕЛУДЕ" : "ИССЛЕДУЕТСЯ")
                 : phase === "complete"
-                  ? (locale === "kz" ? "ЗЕРТТЕЛУДЕ" : "ИССЛЕДУЕТСЯ")
+                  ? (locale === "kz" ? (isCached ? "КЭШТЕЛГЕН" : "ТАЛДАНДЫ") : (isCached ? "ИЗ КЭША" : "ПРОАНАЛИЗИРОВАНО"))
                   : "ERROR"}
             </Badge>
           )}
@@ -290,55 +327,21 @@ export function ForensicScanner({
       {/* Results Phase */}
       {phase === "complete" && analysisResult && (
         <div className="flex flex-col gap-6">
-          {/* Risk Gauge */}
-          <div className="rounded-2xl border border-red-glow/10 bg-gradient-to-b from-red-glow/[0.05] to-transparent p-8 shadow-[inset_0_0_40px_rgba(239,68,68,0.05)]">
-            <RiskGauge value={analysisResult.risk_score} animated />
+          {/* Risk Gauge Hero */}
+          <div className="rounded-2xl border border-red-glow/10 bg-gradient-to-b from-red-glow/[0.05] to-transparent p-6 md:p-10 shadow-[inset_0_0_60px_rgba(239,68,68,0.05)]">
+            <RiskGauge value={analysisResult.risk_score || 0} animated={!!analysisResult.risk_score} />
           </div>
 
-
-          {/* AI Summary */}
-          <div className="rounded-xl border border-primary/20 bg-primary/[0.02] p-4">
-            <p className="text-xs text-secondary-foreground leading-relaxed">
-              {locale === "kz" ? analysisResult.summary_kz : analysisResult.summary_ru}
-            </p>
-          </div>
-
-          {/* Market Analysis Card */}
-          {analysisResult.market_analysis && (
-            <MarketAnalysisCard
-              data={analysisResult.market_analysis}
-              locale={locale as "ru" | "kz"}
-            />
-          )}
-
-          {/* Found issues */}
-
-          <div className="rounded-xl border border-border bg-card p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <AlertTriangle className="h-4 w-4 text-red-glow" />
-              <span className="text-xs font-semibold text-foreground">
-                {t("forensic.violations")} ({analysisResult.violations.length})
-              </span>
+          {/* Minimal File info */}
+          <div className="flex items-center justify-between px-2 text-[10px] text-muted-foreground font-mono">
+            <div className="flex items-center gap-2">
+              <FileText className="h-3 w-3" />
+              <span>{fileName}</span>
             </div>
-            <div className="flex flex-col gap-2">
-              {analysisResult.violations.map((v, i) => (
-                <ViolationItem
-                  key={i}
-                  code={v.code}
-                  text={locale === "kz" ? v.text_kz : v.text_ru}
-                  severity={v.severity}
-                  fragment={v.original_fragment}
-                />
-              ))}
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-3 w-3 text-primary" />
+              <span className="text-primary uppercase tracking-tighter">{t("status.complete")}</span>
             </div>
-          </div>
-
-          {/* File info */}
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <FileText className="h-3.5 w-3.5" />
-            <span className="font-mono">{fileName}</span>
-            <span className="text-muted-foreground/50">|</span>
-            <span className="font-mono text-primary">{t("status.complete")}</span>
           </div>
         </div>
       )}

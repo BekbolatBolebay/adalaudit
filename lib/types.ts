@@ -23,17 +23,21 @@ export type AnalysisResult = {
   summary_ru: string
   summary_kz: string
   original_text: string
-  market_analysis?: MarketAnalysis
 }
 
 export type HighlightSpan = {
   text: string
   type: "normal" | "violation" | "warning"
-  tooltip?: string
+  tooltip: string | null
 }
 
 export type TranslationResult = {
-  original_highlighted: HighlightSpan[]
+  original_text: string
+  violations: {
+    fragment: string
+    type: "violation" | "warning"
+    tooltip: string
+  }[]
   translated_kz: string
   violation_count: number
 }

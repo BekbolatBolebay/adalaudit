@@ -1,4 +1,4 @@
-import { generateText, Output } from "ai"
+import { streamObject } from "ai"
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
 import { z } from "zod"
 
@@ -12,50 +12,49 @@ const violationSchema = z.object({
   text_kz: z.string().describe("Violation description in Kazakh"),
   severity: z.enum(["critical", "high", "medium"]).describe("Severity level"),
   original_fragment: z.string().describe("The exact fragment from the document where violation was found"),
-  explanation: z.string().describe("Detailed explanation of why this is a violation"),
+  explanation: z.string().describe("Detailed explanation of why this is a violation found in the document"),
 })
 
 const analysisSchema = z.object({
   risk_score: z.number().min(0).max(100).describe("Overall manipulation probability score from 0 to 100"),
-  violations: z.array(violationSchema).describe("List of all found violations"),
-  summary_ru: z.string().describe("Brief analysis summary in Russian"),
-  summary_kz: z.string().describe("Brief analysis summary in Kazakh"),
-  market_analysis: z.object({
-    product_name: z.string().describe("Name of the main product/service identified in the document"),
-    tender_price: z.number().describe("Identified tender unit price in KZT"),
-    market_price: z.number().describe("Estimated average market price in Kazakhstan as of 2024-2025"),
-    markup_percent: z.number().describe("Percentage difference between tender and market price"),
-    quantity: z.number().describe("Number of items to be purchased according to document"),
-    total_loss: z.number().describe("Total potential budget loss (markup * quantity)"),
-    is_overpriced: z.boolean().describe("Whether the price is significantly higher (>20%) than market"),
-  }).optional(),
+  violations: z.array(violationSchema).describe("List of all found violations in the document"),
+  summary_ru: z.string().describe("Brief analysis summary in Russian based ONLY on file content"),
+  summary_kz: z.string().describe("Brief analysis summary in Kazakh based ONLY on file content"),
 })
 
 export async function POST(req: Request) {
+  let fileName = "document.pdf"
   try {
-    const { fileData, fileName, mediaType } = await req.json()
+    const body = await req.json()
+    const { fileData, mediaType, isDemoMode } = body
+    fileName = body.fileName || fileName
+    console.log(`[API Analyze] Starting for ${fileName}, mediaType: ${mediaType}, demo: ${isDemoMode}`)
+
+    if (isDemoMode === true) {
+      console.log(`[API Analyze] Manual Demo Mode active for ${fileName}`)
+      const { getMockAnalysis } = await import("@/lib/demo-data")
+      return Response.json(getMockAnalysis(fileName || "document.pdf"))
+    }
 
     if (!fileData) {
+      console.warn("[API Analyze] No file data provided")
       return Response.json({ error: "No file data provided" }, { status: 400 })
     }
+
+    console.log(`[API Analyze] Payload verified. Data length: ${fileData.length}, Type: ${mediaType}`)
 
     let content: any = [
       {
         type: "text",
-        text: `Ты — AI-криминалист РК. Проанализируй техспецифікацию и выяви нарушения:
-1. **Подмена символов**: Кириллица заменена на латиницу (o, a, e, c, p, y, k, t).
-2. **Фаворитизм**: Конкретные бренды без "или эквивалент" (ст.21 Закона о госзакупках).
-3. **Завышение цен**: Цена >20% от рынка (ст.189 УК РК).
-4. **Специфичные требования**: Ограничение конкуренции.
+        text: `Ты — AI-эксперт по экспресс-анализу госзакупок РК.
+ЗАДАЧА: Проверь документ на соответствие Закону о госзакупках РК (особенно ст. 21).
 
-MARKET & LOSS ANALYSIS MISSION:
-1. Extract the estimated unit price (tender_price) and the TOTAL QUANTITY of items.
-2. Identify the main product (e.g., "Laptop Core i7, 16GB RAM"). 
-3. USE GOOGLE SEARCH to find the CURRENT average market price in Kazakhstan (Kaspi.kz, Whitegoods.kz, Shop.kz, etc). 
-4. Calculate 'total_loss' as: (tender_price - market_price) * quantity. If tender_price <= market_price, loss is 0.
-5. If the total_loss is significant, emphasize it as a major risk of embezzlement.
+КРИТЕРИИ ПРИОРИТЕТА:
+1. МАНИПУЛЯЦИИ: Скрытая замена букв кириллицы на латиницу — КРИТИЧНО.
+2. ТЕХСПЕЦИФИКАЦИЯ: Если документ НЕ похож на техспецификацию, ВЫДАЙ ПРЕДУПРЕЖДЕНИЕ.
+3. БАРЬЕРЫ: Конкретные бренды или дискриминационные требования.
 
-Для КАЖДОГО нарушения укажи ТОЧНЫЙ фрагмент текста. Риск: 0-100.
+ОТВЕТ: Максимально кратко. Найди 3-5 самых важных рисков. Не пиши лишнего текста.
 Файл: ${fileName}`,
       },
     ]
@@ -80,68 +79,40 @@ MARKET & LOSS ANALYSIS MISSION:
       })
     }
 
-    let result;
-    try {
-      // Attempt with Google Search grounding
-      result = await generateText({
-        model: google("gemini-2.0-flash"),
-        tools: {
-          googleSearchRetrieval: {
-            //@ts-ignore - provider specific tool
-            googleSearchRetrieval: {}
-          }
+    const result = await streamObject({
+      model: google("gemini-2.5-flash-lite"),
+      schema: analysisSchema,
+      messages: [
+        {
+          role: "user",
+          content,
         },
-        output: Output.object({ schema: analysisSchema }),
-        messages: [
-          {
-            role: "user",
-            content,
-          },
-        ],
-      })
-    } catch (searchError: any) {
-      console.warn("Search grounding failed or quota hit, failing back to standard generation:", searchError);
-
-      // Fallback: Generate WITHOUT search tools
-      result = await generateText({
-        model: google("gemini-2.0-flash"),
-        output: Output.object({ schema: analysisSchema }),
-        messages: [
-          {
-            role: "user",
-            content: [
-              ...content,
-              {
-                type: "text",
-                text: "\nNOTE: Google Search is currently unavailable. Perform market analysis and loss calculation based on your internal knowledge of 2024-2025 prices in Kazakhstan."
-              }
-            ],
-          },
-        ],
-      })
-    }
-
-    const { output } = result;
-
-    return Response.json({
-      ...output,
-      original_text: "extracted",
+      ],
     })
-  } catch (error: any) {
-    console.error("Analysis error:", error)
 
-    // DEMO FALLBACK: If quota exceeded or other API error
-    if (error.status === 429 || error.message?.includes("quota") || error.message?.includes("limit") || process.env.DEMO_MODE === "true") {
+    console.log("[API Analyze] Returning text stream response")
+    return result.toTextStreamResponse()
+
+  } catch (error: any) {
+    console.error(`[API Analyze] Error for ${fileName}:`, error)
+
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const isQuotaError =
+      error.status === 429 ||
+      error.status === 404 ||
+      errorMessage.toLowerCase().includes("quota") ||
+      errorMessage.toLowerCase().includes("limit") ||
+      errorMessage.toLowerCase().includes("not found") ||
+      errorMessage.toLowerCase().includes("not enabled");
+
+    if (isQuotaError || process.env.DEMO_MODE === "true") {
+      console.log(`[API Analyze] Triggering mock fallback for ${fileName}`)
       const { getMockAnalysis } = await import("@/lib/demo-data")
-      const { fileName } = await req.json().catch(() => ({ fileName: "document.pdf" }))
-      return Response.json({
-        ...getMockAnalysis(fileName),
-        original_text: "Demo Data (Quota exceeded)",
-      })
+      return Response.json(getMockAnalysis(fileName || "document.pdf"))
     }
 
     return Response.json(
-      { error: error instanceof Error ? error.message : "Analysis failed" },
+      { error: errorMessage },
       { status: 500 }
     )
   }

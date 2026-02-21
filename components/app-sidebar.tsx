@@ -4,6 +4,7 @@ import { ScanSearch, History, BookOpen, Settings, Shield } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 
+
 const navItems = [
   { key: "nav.scanner", icon: ScanSearch, id: "scanner" },
   { key: "nav.cases", icon: History, id: "cases" },
@@ -62,9 +63,10 @@ export function AppSidebar({
         })}
       </nav>
 
-      <div className="mt-auto flex flex-col items-center gap-2 pb-2">
+      <div className="mt-auto px-2 w-full flex flex-col items-center gap-4 pb-4">
+
         <div className="h-px w-8 bg-border" />
-        <span className="text-[9px] font-mono text-muted-foreground tracking-widest">v2.1</span>
+        <span className="text-[9px] font-mono text-muted-foreground tracking-widest uppercase opacity-50">D.E.R.</span>
       </div>
     </aside>
   )

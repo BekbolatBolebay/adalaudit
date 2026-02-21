@@ -1,0 +1,31 @@
+const { createGoogleGenerativeAI } = require("@ai-sdk/google");
+const { generateText } = require("ai");
+require('dotenv').config();
+
+const google = createGoogleGenerativeAI({
+    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+});
+
+async function test() {
+    try {
+        console.log("Testing Gemini 2.0 Flash...");
+        const { text } = await generateText({
+            model: google("gemini-2.0-flash"),
+            prompt: "Hello, reply with 'Gemini 2.0 is working'",
+        });
+        console.log("Response:", text);
+    } catch (e) {
+        console.error("Error with Gemini 2.0 Flash:", e.message);
+        try {
+            console.log("Testing Gemini 1.5 Flash as fallback...");
+            const { text } = await generateText({
+                model: google("gemini-1.5-flash"),
+                prompt: "Hello, reply with 'Gemini 1.5 is working'",
+            });
+            console.log("Response:", text);
+        } catch (e2) {
+            console.error("Error with Gemini 1.5 Flash:", e2.message);
+        }
+    }
+}
+test();
