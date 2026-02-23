@@ -193,7 +193,7 @@ ${isKz ? "Қолы" : "Подпись"}: ________________    ${isKz ? "Күні"
               <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
                 {isKz ? "Қолы" : "Подпись"}
               </span>
-              <span className="text-xs text-muted-foreground/50 border-b border-dashed border-muted-foreground/30 w-28" />
+              <span className="text-xs text-muted-foreground/50 border-b border-dashed border-muted-foreground/30 w-20 md:w-28" />
             </div>
           </div>
         </div>

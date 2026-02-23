@@ -1,44 +1,55 @@
 "use client"
 
-import { Bell, Globe, User, Menu, X } from "lucide-react"
+import { Bell, Globe, User, Menu, X, Sun, Moon, Shield } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { useTheme } from "next-themes"
+import { useEffect, useState } from "react"
 
-export function AppHeader({
-  isSidebarOpen,
-  onToggleSidebar
-}: {
-  isSidebarOpen: boolean
-  onToggleSidebar: () => void
-}) {
+export function AppHeader() {
   const { locale, setLocale, t } = useI18n()
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  // Avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   return (
     <header className="flex h-14 items-center justify-between border-b border-border bg-card px-4 md:px-6">
       <div className="flex items-center gap-2 md:gap-4">
-        {/* Mobile Toggle */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onToggleSidebar}
-          className="md:hidden"
-        >
-          {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </Button>
-
-        <h1 className="text-sm font-bold tracking-tight text-foreground hidden xs:block">
+        <h1 className="text-sm font-bold tracking-tight text-foreground sm:block hidden">
           ADAL AUDIT
         </h1>
-        <Badge
-          variant="outline"
-          className="border-primary/40 text-primary bg-primary/5 text-[10px] font-mono tracking-wider animate-pulse-glow"
-        >
-          {locale === "kz" ? "БЕЛСЕНДІ" : "LIVE"}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Shield className="h-5 w-5 text-primary md:hidden" />
+          <Badge
+            variant="outline"
+            className="border-primary/40 text-primary bg-primary/5 text-[10px] font-mono tracking-wider animate-pulse-glow"
+          >
+            {locale === "kz" ? "БЕЛСЕНДІ" : "LIVE"}
+          </Badge>
+        </div>
       </div>
 
       <div className="flex items-center gap-1.5 md:gap-3">
+        {/* Theme Toggle */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+        >
+          {mounted && (
+            theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />
+          )}
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+
+        <div className="h-5 w-px bg-border sm:block hidden" />
+
         <Button
           variant="ghost"
           size="sm"
@@ -54,7 +65,7 @@ export function AppHeader({
 
         <button className="relative flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground md:flex hidden">
           <Bell className="h-4 w-4" />
-          <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-cyan-glow animate-pulse-glow" />
+          <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-primary animate-pulse-glow" />
         </button>
 
         <div className="h-5 w-px bg-border" />

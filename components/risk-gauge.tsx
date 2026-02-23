@@ -19,7 +19,7 @@ function getRiskLabel(value: number, t: (key: string) => string): string {
 
 export function RiskGauge({ value, animated }: { value: number; animated?: boolean }) {
   const { t } = useI18n()
-  const displayValue = animated ? value : 0
+  const displayValue = value // Disable count-up animation for stability
   const color = getRiskColor(displayValue)
   const label = getRiskLabel(displayValue, t)
 
@@ -54,20 +54,19 @@ export function RiskGauge({ value, animated }: { value: number; animated?: boole
 
   return (
     <div className="flex flex-col items-center select-none">
-      <svg viewBox="0 0 200 120" className="w-full max-w-[320px] drop-shadow-2xl">
+      <svg viewBox="0 0 200 120" className="w-full max-w-[280px]">
         <defs>
-          {/* Main Glow Filter - Multiple layers for depth */}
+          {/* Main Glow Filter - More subtle for monochrome */}
           <filter id="gauge-glow-premium" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="2.5" result="blur1" />
-            <feGaussianBlur stdDeviation="5" result="blur2" />
+            <feGaussianBlur stdDeviation="1.5" result="blur1" />
             <feMerge>
-              <feMergeNode in="blur2" />
               <feMergeNode in="blur1" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
 
-          {/* Gradient for the value arc */}
+          {/* Gradient for the value arc - potentially keep it or make it monochrome? 
+              User said "change bluish", so we keep red/green for logic but refine the look */}
           <linearGradient id="gauge-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor={getRiskColor(Math.max(0, displayValue - 20))} />
             <stop offset="100%" stopColor={color} />
@@ -79,22 +78,12 @@ export function RiskGauge({ value, animated }: { value: number; animated?: boole
           d={bgPath}
           fill="none"
           stroke="currentColor"
-          className="text-muted/20"
+          className="text-border"
           strokeWidth={strokeWidth}
           strokeLinecap="round"
         />
 
-        {/* Inner track line */}
-        <path
-          d={bgPath}
-          fill="none"
-          stroke="currentColor"
-          className="text-muted/10"
-          strokeWidth={1}
-          opacity="0.5"
-        />
-
-        {/* Value arc with glow and gradient */}
+        {/* Value arc with gradient */}
         {displayValue > 0 && (
           <path
             d={valuePath}
@@ -102,11 +91,6 @@ export function RiskGauge({ value, animated }: { value: number; animated?: boole
             stroke={`url(#gauge-gradient)`}
             strokeWidth={strokeWidth}
             strokeLinecap="round"
-            filter="url(#gauge-glow-premium)"
-            className="transition-all duration-1000 ease-out"
-            style={{
-              transition: animated ? "all 1.5s cubic-bezier(0.34, 1.56, 0.64, 1)" : "none",
-            }}
           />
         )}
 
@@ -156,16 +140,15 @@ export function RiskGauge({ value, animated }: { value: number; animated?: boole
           )
         })}
 
-        {/* Center content - Improved hierarchy */}
-        <g transform={`translate(${cx}, ${cy - 12})`}>
+        {/* Center content - Improved hierarchy and stability */}
+        <g transform={`translate(${cx}, ${cy - 10})`}>
           <text
             textAnchor="middle"
             fill={color}
             fontSize="44"
             fontWeight="800"
             fontFamily="var(--font-mono)"
-            className="tabular-nums transition-all duration-500"
-            style={{ filter: "drop-shadow(0 0 8px currentColor)" }}
+            className="tabular-nums"
           >
             {displayValue}
           </text>
@@ -180,12 +163,18 @@ export function RiskGauge({ value, animated }: { value: number; animated?: boole
           >
             {label}
           </text>
+          <text
+            y="42"
+            textAnchor="middle"
+            fill="currentColor"
+            fontSize="8"
+            fontWeight="700"
+            className="text-muted-foreground/60 uppercase tracking-widest fill-current"
+          >
+            {t("scanner.risk")}
+          </text>
         </g>
       </svg>
-
-      <p className="mt-2 text-[10px] uppercase tracking-widest font-bold text-muted-foreground/60 text-center">
-        {t("scanner.risk")}
-      </p>
     </div>
   )
 }

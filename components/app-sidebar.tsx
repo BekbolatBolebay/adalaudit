@@ -17,20 +17,15 @@ type ActiveView = (typeof navItems)[number]["id"]
 export function AppSidebar({
   activeView,
   onNavigate,
-  isOpen,
 }: {
   activeView: ActiveView
   onNavigate: (view: ActiveView) => void
-  isOpen?: boolean
 }) {
   const { t } = useI18n()
 
   return (
-    <aside className={cn(
-      "fixed inset-y-0 left-0 z-50 flex flex-col items-center border-r border-border bg-sidebar py-6 transition-all duration-300 md:relative md:flex",
-      isOpen ? "w-[72px] translate-x-0" : "w-0 -translate-x-full md:w-[72px] md:translate-x-0"
-    )}>
-      <div className={cn("mb-6 flex items-center justify-center transition-opacity", !isOpen && "md:opacity-100 opacity-0")}>
+    <aside className="hidden md:flex w-[72px] flex-col items-center border-r border-border bg-sidebar py-6 shrink-0 h-full">
+      <div className="mb-6 flex items-center justify-center">
         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 border border-primary/30">
           <Shield className="h-5 w-5 text-primary" />
         </div>
@@ -46,7 +41,7 @@ export function AppSidebar({
               className={cn(
                 "group relative flex h-12 w-12 flex-col items-center justify-center rounded-lg transition-all duration-200",
                 isActive
-                  ? "bg-primary/15 text-primary shadow-[0_0_12px_rgba(0,180,216,0.15)]"
+                  ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-secondary hover:text-foreground"
               )}
               title={t(item.key)}

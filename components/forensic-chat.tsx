@@ -18,7 +18,13 @@ interface ForensicChatProps {
 }
 
 export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }: ForensicChatProps) {
-    const { messages, input = "", handleInputChange, handleSubmit, isLoading } = useChat({
+    const {
+        messages = [],
+        input = "",
+        handleInputChange,
+        handleSubmit,
+        isLoading
+    } = useChat({
         api: "/api/chat",
         body: { context },
     } as any) as any
@@ -151,7 +157,7 @@ export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }
                     <Input
                         placeholder="Сұрақ қойыңыз..."
                         value={input || ""}
-                        onChange={handleInputChange}
+                        onChange={handleInputChange || (() => { })}
                         className="text-xs h-10 bg-muted/30 focus-visible:ring-primary/20"
                     />
                     <Button type="submit" size="icon" disabled={!(input || "").trim() || isLoading} className="h-10 w-10 shrink-0">

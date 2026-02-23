@@ -98,13 +98,13 @@ export function ForensicComparison({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-base font-semibold text-foreground">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <h2 className="text-sm md:text-base font-semibold text-foreground">
           {t("forensic.title")}
         </h2>
         <Badge
           variant="outline"
-          className="border-primary/30 text-primary bg-primary/5 text-[10px] font-mono tracking-wider"
+          className="w-fit border-primary/20 text-primary bg-primary/5 text-[9px] md:text-[10px] font-mono tracking-wider"
         >
           AI LEGAL TRANSLATION
         </Badge>
@@ -113,39 +113,41 @@ export function ForensicComparison({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Original (RU) Panel */}
         <div className="rounded-xl border border-border bg-card overflow-hidden">
-          <div className="flex items-center gap-2 border-b border-border px-4 py-2.5 bg-secondary/30">
-            <FileSearch className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="text-xs font-semibold text-foreground">
-              {t("forensic.original")}
-            </span>
+          <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 md:px-4 py-2 bg-secondary/30">
+            <div className="flex items-center gap-2 shrink-0">
+              <FileSearch className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-[10px] md:text-xs font-semibold text-foreground">
+                {t("forensic.original")}
+              </span>
+            </div>
             {translationResult && (
-              <>
-                <Badge className="ml-auto bg-red-glow/10 text-red-glow border border-red-glow/30 text-[9px] font-mono">
+              <div className="flex items-center gap-1 ml-auto">
+                <Badge className="bg-red-glow/10 text-red-glow border border-red-glow/30 text-[8px] md:text-[9px] font-mono whitespace-nowrap">
                   {(translationResult.violation_count || 0)} VIOLATIONS
                 </Badge>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 ml-1 text-muted-foreground hover:text-foreground"
-                  onClick={() => handleCopy(originalText, setCopiedOriginal)}
-                  title="Copy original text"
-                >
-                  {copiedOriginal ? (
-                    <Check className="h-3 w-3 text-primary" />
-                  ) : (
-                    <Copy className="h-3 w-3" />
-                  )}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                  onClick={() => handleDownload(originalText, "original.txt")}
-                  title="Download original text"
-                >
-                  <Download className="h-3 w-3" />
-                </Button>
-              </>
+                <div className="flex items-center">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                    onClick={() => handleCopy(originalText, setCopiedOriginal)}
+                  >
+                    {copiedOriginal ? (
+                      <Check className="h-3 w-3 text-primary" />
+                    ) : (
+                      <Copy className="h-3 w-3" />
+                    )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                    onClick={() => handleDownload(originalText, "original.txt")}
+                  >
+                    <Download className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
             )}
           </div>
           <ScrollArea className="h-[500px]">
@@ -196,39 +198,41 @@ export function ForensicComparison({
 
         {/* Translation (KZ) Panel */}
         <div className="rounded-xl border border-primary/20 bg-card overflow-hidden">
-          <div className="flex items-center gap-2 border-b border-border px-4 py-2.5 bg-primary/[0.03]">
-            <Languages className="h-3.5 w-3.5 text-primary" />
-            <span className="text-xs font-semibold text-foreground">
-              {t("forensic.translation")}
-            </span>
+          <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 md:px-4 py-2 bg-primary/5">
+            <div className="flex items-center gap-2 shrink-0">
+              <Languages className="h-3.5 w-3.5 text-primary" />
+              <span className="text-[10px] md:text-xs font-semibold text-foreground">
+                {t("forensic.translated")}
+              </span>
+            </div>
             {translationResult && (
-              <>
-                <Badge className="ml-auto bg-primary/10 text-primary border border-primary/30 text-[9px] font-mono">
+              <div className="flex items-center gap-1 ml-auto">
+                <Badge className="bg-primary/5 text-primary border border-primary/20 text-[8px] md:text-[9px] font-mono whitespace-nowrap">
                   AI LEGAL KZ
                 </Badge>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 ml-1 text-muted-foreground hover:text-foreground"
-                  onClick={() => handleCopy(translatedText, setCopiedTranslation)}
-                  title="Copy translation"
-                >
-                  {copiedTranslation ? (
-                    <Check className="h-3 w-3 text-primary" />
-                  ) : (
-                    <Copy className="h-3 w-3" />
-                  )}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                  onClick={() => handleDownload(translatedText, "translation.txt")}
-                  title="Download translation"
-                >
-                  <Download className="h-3 w-3" />
-                </Button>
-              </>
+                <div className="flex items-center">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                    onClick={() => handleCopy(translatedText, setCopiedTranslation)}
+                  >
+                    {copiedTranslation ? (
+                      <Check className="h-3 w-3 text-primary" />
+                    ) : (
+                      <Copy className="h-3 w-3" />
+                    )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                    onClick={() => handleDownload(translatedText, "translated.txt")}
+                  >
+                    <Download className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
             )}
           </div>
           <ScrollArea className="h-[500px]">
@@ -238,7 +242,7 @@ export function ForensicComparison({
                 subtitle="Generating legal translation..."
               />
             ) : translationResult?.translated_kz ? (
-              <div className="p-4 font-mono text-xs leading-relaxed whitespace-pre-wrap text-secondary-foreground">
+              <div className="p-4 font-mono text-xs leading-relaxed whitespace-pre-wrap text-foreground">
                 {translationResult.translated_kz.split("\n").map((line, i) => {
                   if (!line) return <br key={i} />
                   if (line.includes("[!]")) {

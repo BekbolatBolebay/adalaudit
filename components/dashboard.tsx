@@ -12,6 +12,8 @@ import { ForensicChat } from "./forensic-chat"
 import { HistoryView } from "./history-view"
 import { LegalView } from "./legal-view"
 import { SettingsView } from "./settings-view"
+import { BottomNav } from "./bottom-nav"
+import { MarketPriceCard } from "./market-price-card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useI18n } from "@/lib/i18n"
 import { History, BookOpen, Settings, Bot, AlertTriangle } from "lucide-react"
@@ -25,7 +27,6 @@ type View = "scanner" | "cases" | "legal" | "settings"
 export function Dashboard() {
   const { t } = useI18n()
   const [activeView, setActiveView] = useState<View>("scanner")
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [protocolData, setProtocolData] = useState<ProtocolData | null>(null)
   const [isChatVisible, setIsChatVisible] = useState(false)
   const [cachedAnalysis, setCachedAnalysis] = useState<any>(null)
@@ -33,6 +34,8 @@ export function Dashboard() {
   const [isFromCache, setIsFromCache] = useState(false)
   const [isDemoModeEnabled, setIsDemoModeEnabled] = useState(false)
   const [showComparison, setShowComparison] = useState(false)
+  const [marketAnalysis, setMarketAnalysis] = useState<any>(null)
+  const [isCheckingPrices, setIsCheckingPrices] = useState(false)
 
   // Sync demo mode from local storage
   useEffect(() => {
@@ -103,19 +106,25 @@ export function Dashboard() {
       setProtocolData(null)
       setCachedAnalysis(null)
       setCachedTranslation(null)
+      setMarketAnalysis(null)
       setIsFromCache(false)
 
       // Create a simple fingerprint (name + size)
       const fingerprint = `cache_${payload.fileName}_${file.size}`
-      const cached = localStorage.getItem(fingerprint)
+      let cachedData = localStorage.getItem(fingerprint)
+      // Fallback for old keys with trailing space
+      if (!cachedData) {
+        cachedData = localStorage.getItem(fingerprint + " ")
+      }
 
-      if (cached) {
+      if (cachedData) {
         try {
-          const data = JSON.parse(cached)
+          const data = JSON.parse(cachedData)
           console.log("[Cache] Found results for:", payload.fileName)
           setCachedAnalysis(data.analysis)
           setCachedTranslation(data.translation)
           setProtocolData(data.protocol)
+          setMarketAnalysis(data.marketAnalysis || null)
           setIsFromCache(true)
           setIsGeneratingProtocol(false)
           return // Skip AI calls
@@ -174,7 +183,6 @@ export function Dashboard() {
 
   const handleNavigate = useCallback((view: View) => {
     setActiveView(view)
-    setIsSidebarOpen(false) // Close sidebar on mobile after navigation
   }, [])
 
   const handleHistoryLoad = useCallback((fingerprint: string) => {
@@ -213,6 +221,7 @@ export function Dashboard() {
         analysis: analysisObject,
         translation: translationObject,
         protocol: protocolData,
+        marketAnalysis: marketAnalysis,
         timestamp: new Date().toISOString(),
         fileName: filePayload.fileName,
         riskScore: analysisObject.risk_score
@@ -228,29 +237,49 @@ export function Dashboard() {
         localStorage.setItem("cases_history_index", JSON.stringify(historyIndex.slice(0, 20))) // Keep last 20
       }
     }
-  }, [isAnalyzing, isTranslating, isGeneratingProtocol, analysisObject, translationObject, protocolData, isFromCache, filePayload])
+  }, [isAnalyzing, isTranslating, isGeneratingProtocol, analysisObject, translationObject, protocolData, isFromCache, filePayload, marketAnalysis])
+
+  const handleMarketCheck = useCallback(async () => {
+    if (!analysisObject && !cachedAnalysis) return
+
+    // Try to find a laptop or product name in the summary or violations
+    // For simplicity, we'll try to extract "Laptop" or "Notebook" if it exists, or just use a generic name
+    const analysis = analysisObject || cachedAnalysis
+    const productName = filePayload?.fileName.split(".")[0] || "Notebook"
+
+    // Try to find unit price in violations
+    const priceViolation = analysis.violations?.find((v: any) => v.original_fragment?.includes("KZT") || v.text_ru?.includes("цена"))
+    const tenderPrice = 850000 // Fallback or extracted price
+
+    setIsCheckingPrices(true)
+    try {
+      const res = await fetch("/api/price-check", {
+        method: "POST",
+        body: JSON.stringify({ productName, tenderPrice })
+      })
+      const data = await res.json()
+      if (res.ok && !data.error) {
+        setMarketAnalysis(data)
+      } else {
+        console.error("Price check API error:", data.error)
+        setMarketAnalysis(null)
+      }
+    } catch (e) {
+      console.error("Price check failed:", e)
+    } finally {
+      setIsCheckingPrices(false)
+    }
+  }, [analysisObject, cachedAnalysis, filePayload])
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
-      {/* Mobile Overlay */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
       <AppSidebar
         activeView={activeView}
         onNavigate={handleNavigate}
-        isOpen={isSidebarOpen}
       />
 
-      <div className="flex flex-1 flex-col overflow-hidden relative">
-        <AppHeader
-          isSidebarOpen={isSidebarOpen}
-          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-        />
+      <div className="flex flex-1 flex-col overflow-hidden relative pb-16 md:pb-0">
+        <AppHeader />
 
         {(analysisError || translationError) && (
           <div className="mx-6 mt-4 p-3 rounded-lg border border-destructive/50 bg-destructive/10 text-destructive text-xs">
@@ -269,7 +298,7 @@ export function Dashboard() {
           <div className="flex-1 overflow-hidden">
             {activeView === "scanner" ? (
               <ScrollArea className="h-full">
-                <div className="mx-auto max-w-5xl px-4 md:px-6 py-6 flex flex-col gap-6 md:gap-8">
+                <div className="mx-auto max-w-5xl px-4 md:px-6 py-6 pb-24 md:pb-8 flex flex-col gap-6 md:gap-8">
 
                   {/* Scanner Section */}
                   <ForensicScanner
@@ -279,13 +308,16 @@ export function Dashboard() {
                     isLoading={isAnalyzing}
                     error={analysisError}
                     isCached={isFromCache}
+                    onMarketCheck={handleMarketCheck}
+                    isCheckingPrices={isCheckingPrices}
+                    hasMarketData={!!marketAnalysis}
                   />
 
                   {/* Analysis Details - Extracted from Scanner for better hierarchy */}
                   {(analysisObject || cachedAnalysis) && (analysisObject || cachedAnalysis).risk_score !== undefined && (
                     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-top-2 duration-500">
                       {/* AI Summary Block */}
-                      <div className="rounded-xl border border-primary/20 bg-primary/[0.02] p-5 shadow-sm">
+                      <div className="rounded-xl border border-border bg-secondary/10 p-5 shadow-sm">
                         <p className="text-xs text-secondary-foreground leading-relaxed">
                           {t("lang.toggle") === "RU"
                             ? (analysisObject || cachedAnalysis).summary_kz
@@ -296,7 +328,7 @@ export function Dashboard() {
                       {/* Violations List */}
                       <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
                         <div className="flex items-center gap-2 mb-4">
-                          <AlertTriangle className="h-4 w-4 text-red-600" />
+                          <AlertTriangle className="h-4 w-4 text-foreground/70" />
                           <span className="text-xs font-bold text-foreground uppercase tracking-tight">
                             {t("lang.toggle") === "RU" ? "ТАБЫЛҒАН БҰЗУШЫЛЫҚТАР" : "НАЙДЕННЫЕ НАРУШЕНИЯ"} ({(analysisObject || cachedAnalysis).violations?.length || 0})
                           </span>
@@ -330,6 +362,11 @@ export function Dashboard() {
                           ))}
                         </div>
                       </div>
+
+                      {/* Market Price Analysis Card */}
+                      {marketAnalysis && (
+                        <MarketPriceCard data={marketAnalysis} />
+                      )}
                     </div>
                   )}
 
@@ -372,7 +409,7 @@ export function Dashboard() {
               </ScrollArea>
             ) : (
               <ScrollArea className="h-full">
-                <div className="mx-auto max-w-5xl px-4 md:px-6 py-6">
+                <div className="mx-auto max-w-5xl px-4 md:px-6 py-6 pb-24 md:pb-8 h-full flex flex-col">
                   {activeView === "cases" && <HistoryView onItemClick={handleHistoryLoad} />}
                   {activeView === "legal" && <LegalView />}
                   {activeView === "settings" && <SettingsView />}
@@ -380,6 +417,11 @@ export function Dashboard() {
               </ScrollArea>
             )}
           </div>
+
+          <BottomNav
+            activeView={activeView}
+            onNavigate={handleNavigate}
+          />
 
           {/* Right Sidebar for AI Chat */}
           {(analysisObject || cachedAnalysis) && activeView === "scanner" && (

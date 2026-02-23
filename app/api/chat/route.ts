@@ -1,5 +1,6 @@
 import { streamText } from "ai"
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
+import { z } from "zod"
 
 const google = createGoogleGenerativeAI({
     apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
@@ -23,12 +24,35 @@ ${JSON.stringify(context, null, 2)}
 3. Если пользователь спрашивает о конкретном нарушении из документа, дай подробный правовой комментарий.
 4. Ответы давай на том языке, на котором спрашивает пользователь (русский или казахский).
 5. Будь лаконичным, но содержательным.
+6. Используй инструмент 'searchLegalDatabase' для поиска самой свежей информации о законах, если контекста недостаточно.
 `
 
         const result = await streamText({
             model: google("gemini-2.5-flash-lite"),
             system: systemPrompt,
             messages,
+            tools: {
+                searchLegalDatabase: {
+                    description: "Search for the latest Kazakh laws, court cases, and procurement rules on adilet.zan.kz and online.zakon.kz",
+                    inputSchema: z.object({
+                        query: z.string().describe("The search query in Russian or Kazakh"),
+                    }),
+                    execute: async ({ query }) => {
+                        try {
+                            // Call the internal search API
+                            const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/search`, {
+                                method: "POST",
+                                body: JSON.stringify({ query }),
+                            })
+                            const data = await res.json()
+                            return data.results || []
+                        } catch (e) {
+                            console.error("Search tool error:", e)
+                            return { error: "Search failed" }
+                        }
+                    },
+                },
+            },
         })
 
         return result.toTextStreamResponse()

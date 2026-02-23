@@ -9,6 +9,7 @@ import {
   Loader2,
   RotateCcw,
   XCircle,
+  TrendingUp,
 } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
@@ -48,6 +49,9 @@ export function ForensicScanner({
   isLoading,
   error,
   isCached,
+  onMarketCheck,
+  isCheckingPrices,
+  hasMarketData,
 }: {
   onScanComplete: (
     file: File,
@@ -58,11 +62,16 @@ export function ForensicScanner({
   isLoading?: boolean
   error?: Error | null
   isCached?: boolean
+  onMarketCheck?: () => void
+  isCheckingPrices?: boolean
+  hasMarketData?: boolean
 }) {
   const { t, locale } = useI18n()
   const [phase, setPhase] = useState<ScanPhase>("idle")
   const [dragOver, setDragOver] = useState(false)
   const [fileName, setFileName] = useState("")
+  const [fileSize, setFileSize] = useState(0)
+  const [mediaType, setMediaType] = useState("")
   const [errorMessage, setErrorMessage] = useState("")
   const [scanStepIndex, setScanStepIndex] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -110,7 +119,10 @@ export function ForensicScanner({
         return
       }
 
+      const mType = getMediaType(file)
       setFileName(file.name)
+      setFileSize(file.size)
+      setMediaType(mType)
       setPhase("reading")
       setErrorMessage("")
       setScanStepIndex(0)
@@ -184,9 +196,9 @@ export function ForensicScanner({
               className={cn(
                 "font-mono text-[10px] tracking-wider",
                 isScanning
-                  ? "border-cyan-glow/40 text-cyan-glow bg-cyan-glow/5"
+                  ? "border-primary/40 text-primary bg-primary/5"
                   : phase === "complete"
-                    ? "border-primary/40 text-primary bg-primary/5 shadow-[0_0_10px_rgba(0,180,216,0.1)]"
+                    ? "border-primary/40 text-primary bg-primary/5 shadow-sm"
                     : "border-destructive/40 text-destructive bg-destructive/5"
               )}
             >
@@ -222,10 +234,10 @@ export function ForensicScanner({
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
           className={cn(
-            "relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed py-12 px-8 transition-all duration-300",
+            "relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed py-8 md:py-12 px-4 md:px-8 transition-all duration-300",
             dragOver
-              ? "border-primary bg-primary/5 shadow-[0_0_30px_rgba(0,180,216,0.1)]"
-              : "border-border bg-secondary/30 hover:border-primary/40 hover:bg-primary/5"
+              ? "border-primary bg-primary/5"
+              : "border-border bg-secondary/10 hover:border-primary/40 hover:bg-primary/5"
           )}
         >
           <div
@@ -259,11 +271,11 @@ export function ForensicScanner({
 
       {/* Scanning Phase */}
       {isScanning && (
-        <div className="flex flex-col items-center gap-6 rounded-xl border border-cyan-glow/20 bg-cyan-glow/[0.02] p-8">
+        <div className="flex flex-col items-center gap-6 rounded-xl border border-border bg-secondary/5 p-8">
           {/* Animated scanner visual */}
           <div className="relative flex h-20 w-20 items-center justify-center">
-            <div className="absolute inset-0 rounded-full border-2 border-cyan-glow/30 animate-ping" />
-            <div className="absolute inset-2 rounded-full border border-cyan-glow/20 animate-pulse" />
+            <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping" />
+            <div className="absolute inset-2 rounded-full border border-primary/10 animate-pulse" />
             <Loader2 className="h-8 w-8 text-primary animate-spin" />
           </div>
 
@@ -272,10 +284,19 @@ export function ForensicScanner({
               {t("scanner.processing")}
             </p>
             <p className="mt-1 text-xs text-muted-foreground font-mono">{fileName}</p>
+            {/* File details */}
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+              <Badge variant="outline" className="text-[10px] font-mono border-primary/20 text-primary px-2 py-0.5">
+                {mediaType.split("/")[1]?.toUpperCase() || "DOC"}
+              </Badge>
+              <span className="text-[10px] text-muted-foreground font-mono">
+                {(fileSize / 1024).toFixed(1)} KB
+              </span>
+            </div>
           </div>
 
           {/* Step indicators */}
-          <div className="w-full max-w-sm flex flex-col gap-3">
+          <div className="w-full flex flex-col gap-3">
             {scanStepKeys.map((key, i) => {
               const done = i < scanStepIndex
               const active = i === scanStepIndex
@@ -326,9 +347,9 @@ export function ForensicScanner({
 
       {/* Results Phase */}
       {phase === "complete" && analysisResult && (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
           {/* Risk Gauge Hero */}
-          <div className="rounded-2xl border border-red-glow/10 bg-gradient-to-b from-red-glow/[0.05] to-transparent p-6 md:p-10 shadow-[inset_0_0_60px_rgba(239,68,68,0.05)]">
+          <div className="rounded-2xl border border-border bg-card p-6 md:p-10">
             <RiskGauge value={analysisResult.risk_score || 0} animated={!!analysisResult.risk_score} />
           </div>
 
@@ -343,6 +364,23 @@ export function ForensicScanner({
               <span className="text-primary uppercase tracking-tighter">{t("status.complete")}</span>
             </div>
           </div>
+
+          {phase === "complete" && !hasMarketData && (
+            <div className="mt-2 px-2 w-full flex justify-center">
+              <Button
+                onClick={onMarketCheck}
+                disabled={isCheckingPrices}
+                className="w-full max-w-sm h-10 gap-2 bg-primary text-primary-foreground hover:bg-primary/90 text-xs font-bold animate-in fade-in zoom-in-95 duration-500"
+              >
+                {isCheckingPrices ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <TrendingUp className="h-4 w-4" />
+                )}
+                {locale === "kz" ? "Нарықтық бағаны тексеру" : "Проверить рыночные цены"}
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

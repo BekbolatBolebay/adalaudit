@@ -54,7 +54,7 @@ export function HistoryView({ onItemClick }: { onItemClick: (fingerprint: string
                     <TableBody>
                         {history.length === 0 ? (
                             <TableRow>
-                                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground text-xs italic">
+                                <TableCell colSpan={5} className="h-32 text-center text-muted-foreground text-xs italic">
                                     Талдаулар тарихы бос...
                                 </TableCell>
                             </TableRow>

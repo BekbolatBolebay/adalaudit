@@ -59,19 +59,16 @@ export async function POST(req: Request) {
       },
     ]
 
-    const isDocx =
-      mediaType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-      fileName.endsWith(".docx")
+    const { extractEnhancedContent } = await import("@/lib/document-server")
+    const extractedText = await extractEnhancedContent(fileData, fileName, mediaType || "")
 
-    if (isDocx) {
-      const { extractTextFromDocx } = await import("@/lib/document-server")
-      const buffer = Buffer.from(fileData, "base64")
-      const extractedText = await extractTextFromDocx(buffer)
+    if (extractedText) {
       content.push({
         type: "text",
-        text: `СОДЕРЖИМОЕ WORD-ДОКУМЕНТА:\n\n${extractedText}`,
+        text: `СОДЕРЖИМОЕ ДОКУМЕНТА (Extracted Content):\n\n${extractedText}`,
       })
-    } else {
+    } else if (!fileName.endsWith(".docx")) {
+      // For PDF, if no enhanced text was extracted, we still send the file to Gemini
       content.push({
         type: "file",
         data: fileData,
