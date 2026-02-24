@@ -84,7 +84,7 @@ type I18nContextType = {
 const I18nContext = createContext<I18nContextType | null>(null)
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocale] = useState<Locale>("ru")
+  const [locale, setLocale] = useState<Locale>("kz")
 
   const t = (key: string): string => {
     return translations[key]?.[locale] ?? key

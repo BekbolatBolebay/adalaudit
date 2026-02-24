@@ -73,15 +73,7 @@ export function RiskGauge({ value, animated }: { value: number; animated?: boole
           </linearGradient>
         </defs>
 
-        {/* Background arc with subtle depth */}
-        <path
-          d={bgPath}
-          fill="none"
-          stroke="currentColor"
-          className="text-border"
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-        />
+
 
         {/* Value arc with gradient */}
         {displayValue > 0 && (
@@ -152,17 +144,7 @@ export function RiskGauge({ value, animated }: { value: number; animated?: boole
           >
             {displayValue}
           </text>
-          <text
-            y="22"
-            textAnchor="middle"
-            fill={color}
-            fontSize="10"
-            fontWeight="700"
-            fontFamily="var(--font-sans)"
-            className="uppercase tracking-[0.2em] opacity-90"
-          >
-            {label}
-          </text>
+
           <text
             y="42"
             textAnchor="middle"

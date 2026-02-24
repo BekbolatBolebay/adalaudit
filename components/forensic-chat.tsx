@@ -23,7 +23,9 @@ export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }
         input = "",
         handleInputChange,
         handleSubmit,
-        isLoading
+        isLoading,
+        append,
+        setInput
     } = useChat({
         api: "/api/chat",
         body: { context },
@@ -99,7 +101,13 @@ export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }
                                             variant="outline"
                                             size="sm"
                                             className="text-[11px] justify-start h-auto py-2 bg-background hover:bg-primary/5 border-primary/10 text-left"
-                                            onClick={() => handleInputChange({ target: { value: action.prompt } } as any)}
+                                            onClick={() => {
+                                                if (typeof append === 'function') {
+                                                    append({ role: 'user', content: action.prompt })
+                                                } else if (typeof setInput === 'function') {
+                                                    setInput(action.prompt)
+                                                }
+                                            }}
                                         >
                                             {action.label}
                                         </Button>

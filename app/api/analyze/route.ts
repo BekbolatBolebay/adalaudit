@@ -77,7 +77,7 @@ export async function POST(req: Request) {
     }
 
     const result = await streamObject({
-      model: google("gemini-2.5-flash-lite"),
+      model: google("gemini-1.5-flash"),
       schema: analysisSchema,
       messages: [
         {

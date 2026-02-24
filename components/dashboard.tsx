@@ -16,7 +16,7 @@ import { BottomNav } from "./bottom-nav"
 import { MarketPriceCard } from "./market-price-card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useI18n } from "@/lib/i18n"
-import { History, BookOpen, Settings, Bot, AlertTriangle } from "lucide-react"
+import { History, BookOpen, Settings, Bot, AlertTriangle, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -437,10 +437,37 @@ export function Dashboard() {
               />
             </div>
           )}
+          {/* Floating Chat Button for Mobile/Tablet */}
+          {(analysisObject || cachedAnalysis) && activeView === "scanner" && (
+            <div className="lg:hidden fixed bottom-20 right-4 z-50">
+              <Button
+                size="icon"
+                className="h-12 w-12 rounded-full shadow-lg bg-primary text-primary-foreground"
+                onClick={() => setIsChatVisible(!isChatVisible)}
+              >
+                {isChatVisible ? <X className="h-6 w-6" /> : <Bot className="h-6 w-6" />}
+              </Button>
+            </div>
+          )}
+
+          {/* Floating Chat for Mobile/Tablet overlay */}
+          {(analysisObject || cachedAnalysis) && activeView === "scanner" && isChatVisible && (
+            <div className="lg:hidden fixed inset-0 z-50 bg-background/80 backdrop-blur-sm p-4 flex items-center justify-center animate-in fade-in duration-300">
+              <div className="w-full max-w-sm h-[80vh] relative shadow-2xl rounded-2xl overflow-hidden border border-border">
+                <ForensicChat
+                  isVisible={true}
+                  onClose={() => setIsChatVisible(false)}
+                  isEmbedded={true}
+                  context={{
+                    analysis: analysisObject || cachedAnalysis,
+                    fileName: filePayload?.fileName
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </main>
       </div>
-
-
     </div>
   )
 }
