@@ -36,11 +36,6 @@ export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }
     } as any) as any;
 
     const scrollRef = useRef<HTMLDivElement>(null)
-    const [isMounted, setIsMounted] = useState(false)
-
-    useEffect(() => {
-        setIsMounted(true)
-    }, [])
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -49,7 +44,6 @@ export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }
     }, [messages])
 
     if (!isVisible && !isEmbedded) return null
-    if (!isMounted) return null // Prevent SSR/Hydration issues and early state updates
 
     const quickActions = [
         { label: "Рисктерді қорытындылау", prompt: "Осы құжаттағы негізгі коррупциялық рисктерді қысқаша атап бер." },

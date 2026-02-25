@@ -19,16 +19,16 @@ function getRiskLabel(value: number, t: (key: string) => string): string {
 
 export function RiskGauge({ value, animated }: { value: number; animated?: boolean }) {
   const { t } = useI18n()
-  const displayValue = Number(value.toFixed(1))
+  const displayValue = Number(value?.toFixed(1) || 0)
   const color = getRiskColor(displayValue)
   const label = getRiskLabel(displayValue, t)
 
-  // Semi-circle gauge calculations - Optimizing for centered horizontal layout
-  const radius = 85
+  // Semi-circle gauge calculations 
+  const radius = 80
   const strokeWidth = 14
   const cx = 100
-  const cy = 110 // Centered more vertically to prevent clipping
-  const startAngle = Math.PI + 0.35 // Slightly further out
+  const cy = 105
+  const startAngle = Math.PI + 0.35
   const endAngle = -0.35
   const totalAngle = startAngle - endAngle
 
@@ -53,12 +53,11 @@ export function RiskGauge({ value, animated }: { value: number; animated?: boole
   const ticks = [0, 20, 40, 60, 80, 100]
 
   return (
-    <div className="flex flex-col items-center select-none w-full">
-      <div className="relative w-full max-w-[320px] aspect-[1.6/1]">
-        <svg viewBox="0 0 200 140" className="w-full h-full drop-shadow-2xl">
+    <div className="flex flex-col items-center select-none w-full py-4">
+      <div className="relative w-full max-w-[300px] aspect-[1.5/1]">
+        <svg viewBox="0 0 200 135" className="w-full h-full drop-shadow-xl overflow-visible">
           <defs>
-            {/* Soft Shadow for the arc */}
-            <filter id="gauge-shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <filter id="gauge-shadow-v2" x="-20%" y="-20%" width="140%" height="140%">
               <feGaussianBlur stdDeviation="3" result="blur" />
               <feOffset dx="0" dy="2" result="offsetBlur" />
               <feComponentTransfer>
@@ -70,27 +69,18 @@ export function RiskGauge({ value, animated }: { value: number; animated?: boole
               </feMerge>
             </filter>
 
-            {/* Premium Gradient */}
-            <linearGradient id="premium-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+            <linearGradient id="premium-gradient-v2" x1="0%" y1="100%" x2="100%" y2="0%">
               <stop offset="0%" stopColor={getRiskColor(Math.max(0, displayValue - 30))} stopOpacity="0.8" />
               <stop offset="100%" stopColor={color} />
             </linearGradient>
-
-            {/* Inner Glow */}
-            <filter id="inner-glow">
-              <feFlood floodColor={color} />
-              <feComposite in2="SourceGraphic" operator="out" />
-              <feGaussianBlur stdDeviation="2" result="blur" />
-              <feComposite in2="SourceGraphic" operator="atop" />
-            </filter>
           </defs>
 
-          {/* Background Track - Subtle Glassmorphism style */}
+          {/* Background Track */}
           <path
             d={bgPath}
             fill="none"
             stroke="currentColor"
-            className="text-secondary/50"
+            className="text-muted/10"
             strokeWidth={strokeWidth}
             strokeLinecap="round"
           />
@@ -100,10 +90,10 @@ export function RiskGauge({ value, animated }: { value: number; animated?: boole
             <path
               d={valuePath}
               fill="none"
-              stroke="url(#premium-gradient)"
+              stroke="url(#premium-gradient-v2)"
               strokeWidth={strokeWidth}
               strokeLinecap="round"
-              filter="url(#gauge-shadow)"
+              filter="url(#gauge-shadow-v2)"
               className="transition-all duration-1000 ease-out"
             />
           )}
@@ -112,13 +102,13 @@ export function RiskGauge({ value, animated }: { value: number; animated?: boole
           {ticks.map((tick) => {
             const angle = startAngle - (tick / 100) * totalAngle
             const innerR = radius - strokeWidth - 5
-            const outerR = radius - strokeWidth + 2
+            const outerR = radius - strokeWidth + 1
             const x1 = cx + innerR * Math.cos(angle)
             const y1 = cy - innerR * Math.sin(angle)
             const x2 = cx + outerR * Math.cos(angle)
             const y2 = cy - outerR * Math.sin(angle)
 
-            const labelR = radius + strokeWidth + 12
+            const labelR = radius + 22
             const lx = cx + labelR * Math.cos(angle)
             const ly = cy - labelR * Math.sin(angle)
 
@@ -129,16 +119,16 @@ export function RiskGauge({ value, animated }: { value: number; animated?: boole
                   y1={y1}
                   x2={x2}
                   y2={y2}
-                  className="stroke-muted-foreground/40"
-                  strokeWidth="1"
+                  className="stroke-muted-foreground/20"
+                  strokeWidth="0.8"
                 />
                 <text
                   x={lx}
                   y={ly}
                   textAnchor="middle"
                   dominantBaseline="middle"
-                  className="fill-muted-foreground font-mono font-medium"
-                  style={{ fontSize: '8px' }}
+                  className="fill-muted-foreground/50 font-sans font-bold"
+                  style={{ fontSize: '7px' }}
                 >
                   {tick}
                 </text>
@@ -147,27 +137,27 @@ export function RiskGauge({ value, animated }: { value: number; animated?: boole
           })}
 
           {/* Center Score & Label */}
-          <g transform={`translate(${cx}, ${cy - 10})`}>
+          <g transform={`translate(${cx}, ${cy - 12})`}>
             <text
               textAnchor="middle"
-              className="font-mono font-black tracking-tighter"
-              style={{ fontSize: displayValue >= 100 ? '42px' : '48px', fill: color }}
+              className="font-sans font-black tracking-tight"
+              style={{ fontSize: displayValue >= 100 ? '40px' : '48px', fill: color }}
             >
               {displayValue}
             </text>
             <text
-              y="28"
+              y="24"
               textAnchor="middle"
-              className="fill-muted-foreground font-sans font-bold uppercase tracking-[0.2em]"
-              style={{ fontSize: '7px' }}
+              className="fill-muted-foreground/60 font-sans font-bold uppercase tracking-[0.2em]"
+              style={{ fontSize: '6.5px' }}
             >
               {t("scanner.risk")}
             </text>
             <text
-              y="42"
+              y="38"
               textAnchor="middle"
-              className="font-sans font-extrabold uppercase"
-              style={{ fontSize: '10px', fill: color }}
+              className="font-sans font-black uppercase tracking-wider"
+              style={{ fontSize: '11px', fill: color }}
             >
               {label}
             </text>
@@ -175,11 +165,10 @@ export function RiskGauge({ value, animated }: { value: number; animated?: boole
         </svg>
       </div>
 
-      {/* Modern Status Badge / Legend item */}
-      <div className="mt-2 flex items-center gap-2">
+      <div className="mt-4 px-4 py-1.5 rounded-full bg-secondary/20 border border-secondary/30 flex items-center gap-2">
         <div className="h-2 w-2 rounded-full animate-pulse" style={{ backgroundColor: color }} />
-        <span className="text-[10px] font-bold text-muted-foreground/80 tracking-widest uppercase">
-          {label} Analysis
+        <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em] pt-0.5">
+          {label} ANALYSIS
         </span>
       </div>
     </div>

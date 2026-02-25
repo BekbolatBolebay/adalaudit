@@ -109,7 +109,7 @@ export function ForensicScanner({
           setScanStepIndex(3)
         } else {
           setPhase("error")
-          setErrorMessage(locale === "kz" ? "Талдау нәтижесі алынбады. API квотасын немесе файлды тексеріңіз." : "Результаты анализа не получены. Проверьте квоту API или файл.")
+          setErrorMessage(locale === "kz" ? "Талдау нәтижесі алынбады. Модель жүктемесін немесе файлды тексеріңіз." : "Результаты анализа не получены. Проверьте нагрузку модели или файл.")
         }
       }
     }
@@ -118,7 +118,7 @@ export function ForensicScanner({
       console.error("[Scanner] Error encountered:", error)
       setPhase("error")
       // If it's a known error from the API, it might have a Kazakh/Russian translation in the message
-      const msg = error.message || "AI API Error"
+      const msg = error.message || "LLM System Error"
       setErrorMessage(msg)
     }
   }, [isLoading, analysisResult, error])

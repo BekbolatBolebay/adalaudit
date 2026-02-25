@@ -101,7 +101,9 @@ export async function POST(req: Request) {
       errorMessage.toLowerCase().includes("quota") ||
       errorMessage.toLowerCase().includes("limit") ||
       errorMessage.toLowerCase().includes("not found") ||
-      errorMessage.toLowerCase().includes("not enabled");
+      errorMessage.toLowerCase().includes("not enabled") ||
+      errorMessage.toLowerCase().includes("getaddrinfo") ||
+      errorMessage.toLowerCase().includes("connect");
 
     if (isQuotaError || process.env.DEMO_MODE === "true") {
       console.log(`[API Analyze] Triggering mock fallback for ${fileName}`)

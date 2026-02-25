@@ -288,7 +288,7 @@ export function Dashboard() {
               console.error("[Dashboard] AI Error Context:", { analysisError, translationError });
               return null;
             })()}
-            {analysisError?.message || translationError?.message || "AI Connection Error"}
+            {analysisError?.message || translationError?.message || "Model Synchronisation Error"}
           </div>
         )}
 
