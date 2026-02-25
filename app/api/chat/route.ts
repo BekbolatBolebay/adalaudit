@@ -27,6 +27,8 @@ ${JSON.stringify(context, null, 2)}
 6. Используй инструмент 'searchLegalDatabase' для поиска самой свежей информации о законах, если контекста недостаточно.
 `
 
+        console.log("[API Chat] Incoming request:", messages?.length, "messages");
+
         const result = await streamText({
             model: google("gemini-1.5-flash"),
             system: systemPrompt,
@@ -38,6 +40,7 @@ ${JSON.stringify(context, null, 2)}
                         query: z.string().describe("The search query in Russian or Kazakh"),
                     }),
                     execute: async ({ query }) => {
+                        console.log("[API Chat] Tool Call: searchLegalDatabase", query);
                         try {
                             // Call the internal search API
                             const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/search`, {
@@ -45,9 +48,10 @@ ${JSON.stringify(context, null, 2)}
                                 body: JSON.stringify({ query }),
                             })
                             const data = await res.json()
+                            console.log("[API Chat] Search results:", data?.results?.length || 0);
                             return data.results || []
                         } catch (e) {
-                            console.error("Search tool error:", e)
+                            console.error("[API Chat] Search tool error:", e)
                             return { error: "Search failed" }
                         }
                     },
@@ -57,9 +61,15 @@ ${JSON.stringify(context, null, 2)}
 
         return result.toTextStreamResponse()
     } catch (error: any) {
-        console.error("[API Chat] Error:", error)
+        console.error("[API Chat] CRITICAL Error:", error)
+        if (error.message?.includes("API key")) {
+            console.error("[API Chat] API Key Issue Detected");
+        }
         return Response.json(
-            { error: error instanceof Error ? error.message : "Chat failed" },
+            {
+                error: error instanceof Error ? error.message : "Chat failed",
+                details: error.stack
+            },
             { status: 500 }
         )
     }

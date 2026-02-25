@@ -76,8 +76,9 @@ export async function POST(req: Request) {
       })
     }
 
+    console.log("[API Analyze] Calling streamObject with content length:", JSON.stringify(content).length)
     const result = await streamObject({
-      model: google("gemini-1.5-flash"),
+      model: google("gemini-2.5-flash-lite"),
       schema: analysisSchema,
       messages: [
         {
@@ -87,7 +88,7 @@ export async function POST(req: Request) {
       ],
     })
 
-    console.log("[API Analyze] Returning text stream response")
+    console.log("[API Analyze] Returning text stream response. Stream object initial state:", !!result)
     return result.toTextStreamResponse()
 
   } catch (error: any) {
@@ -104,8 +105,10 @@ export async function POST(req: Request) {
 
     if (isQuotaError || process.env.DEMO_MODE === "true") {
       console.log(`[API Analyze] Triggering mock fallback for ${fileName}`)
-      const { getMockAnalysis } = await import("@/lib/demo-data")
-      return Response.json(getMockAnalysis(fileName || "document.pdf"))
+      return Response.json(
+        { error: "API квотасы таусылды немесе байланыс жоқ. Демо режимді қосыңыз. (API Quota Exceeded or No Connection)" },
+        { status: 500 }
+      )
     }
 
     return Response.json(

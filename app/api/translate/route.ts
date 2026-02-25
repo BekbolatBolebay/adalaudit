@@ -68,7 +68,7 @@ export async function POST(req: Request) {
     }
 
     const result = await streamObject({
-      model: google("gemini-1.5-flash"),
+      model: google("gemini-2.5-flash-lite"),
       schema: translationSchema,
       messages: [
         {
@@ -95,8 +95,10 @@ export async function POST(req: Request) {
 
     if (isQuotaOrModelError || process.env.DEMO_MODE === "true") {
       console.log(`[API Translate] Triggering mock fallback for ${fileName}`)
-      const { getMockTranslation } = await import("@/lib/demo-data")
-      return Response.json(getMockTranslation(fileName))
+      return Response.json(
+        { error: "Translation API error (Quota/Connection). Please try again or use Demo mode." },
+        { status: 500 }
+      )
     }
 
     return Response.json(

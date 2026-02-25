@@ -24,14 +24,23 @@ export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }
         handleInputChange,
         handleSubmit,
         isLoading,
-        append,
-        setInput
+        append
     } = useChat({
         api: "/api/chat",
         body: { context },
-    } as any) as any
+        id: "forensic-chat",
+        initialMessages: [],
+        onError: (err: any) => {
+            console.error("Chat Hook Error:", err);
+        }
+    } as any) as any;
 
     const scrollRef = useRef<HTMLDivElement>(null)
+    const [isMounted, setIsMounted] = useState(false)
+
+    useEffect(() => {
+        setIsMounted(true)
+    }, [])
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -40,20 +49,13 @@ export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }
     }, [messages])
 
     if (!isVisible && !isEmbedded) return null
+    if (!isMounted) return null // Prevent SSR/Hydration issues and early state updates
 
     const quickActions = [
         { label: "Рисктерді қорытындылау", prompt: "Осы құжаттағы негізгі коррупциялық рисктерді қысқаша атап бер." },
         { label: "Заң бойынша талдау", prompt: "Табылған бұзушылықтар ҚР заңының қай баптарына қайшы келеді?" },
         { label: "Болашақ қадамдар", prompt: "Осы жағдай бойынша әрі қарай қандай тергеу амалдарын жүргізу керек?" }
     ]
-
-    const handleQuickAction = (prompt: string) => {
-        // Manually trigger handleSubmit with the prompt
-        handleSubmit(undefined, {
-            data: { prompt } // This depends on how exactly useChat handles manual submits, usually we just set input and submit
-        })
-        // For AI SDK useChat, setting input and then calling handleSubmit is common
-    }
 
     return (
         <Card className={cn(
@@ -104,8 +106,6 @@ export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }
                                             onClick={() => {
                                                 if (typeof append === 'function') {
                                                     append({ role: 'user', content: action.prompt })
-                                                } else if (typeof setInput === 'function') {
-                                                    setInput(action.prompt)
                                                 }
                                             }}
                                         >
@@ -161,14 +161,19 @@ export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }
             </CardContent>
 
             <CardFooter className="p-4 border-t bg-background/50">
-                <form onSubmit={handleSubmit} className="flex w-full gap-2">
+                <form onSubmit={(e) => {
+                    e.preventDefault();
+                    if (input && input.trim()) {
+                        handleSubmit(e);
+                    }
+                }} className="flex w-full gap-2">
                     <Input
                         placeholder="Сұрақ қойыңыз..."
                         value={input || ""}
                         onChange={handleInputChange || (() => { })}
                         className="text-xs h-10 bg-muted/30 focus-visible:ring-primary/20"
                     />
-                    <Button type="submit" size="icon" disabled={!(input || "").trim() || isLoading} className="h-10 w-10 shrink-0">
+                    <Button type="submit" size="icon" disabled={!input || !input.trim() || isLoading} className="h-10 w-10 shrink-0">
                         <Send className="w-4 h-4" />
                     </Button>
                 </form>

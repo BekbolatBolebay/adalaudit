@@ -80,29 +80,46 @@ export function ForensicScanner({
 
   // Update phase when isLoading changes externally
   useEffect(() => {
+    console.log("[Scanner] State Update - isLoading:", isLoading, "hasResult:", !!analysisResult, "error:", !!error);
     if (isLoading) {
       setPhase("analyzing")
 
       // Granular step logic
       if (analysisResult?.summary_ru || analysisResult?.summary_kz) {
+        console.log("[Scanner] Moving to Step 2 (Summary available)");
         setScanStepIndex(2) // Final summary step
       } else if (analysisResult?.violations && analysisResult.violations.length > 0) {
+        console.log("[Scanner] Moving to Step 1 (Violations available)");
         setScanStepIndex(1) // Middle step
       } else {
         setScanStepIndex(0) // First step (still connecting/initial analysis)
       }
     }
 
-    if (!isLoading && analysisResult) {
-      console.log("[Scanner] Loading complete.")
-      setPhase("complete")
-      setScanStepIndex(3)
+    if (!isLoading && phase === "analyzing") {
+      if (analysisResult && (analysisResult.risk_score !== undefined || (analysisResult.violations && analysisResult.violations.length > 0))) {
+        console.log("[Scanner] Loading complete. Switching to complete phase.");
+        setPhase("complete")
+        setScanStepIndex(3)
+      } else if (!error) {
+        // Fallback for unexpected empty results
+        console.warn("[Scanner] Finished with no result and no error");
+        if (analysisResult) {
+          setPhase("complete")
+          setScanStepIndex(3)
+        } else {
+          setPhase("error")
+          setErrorMessage(locale === "kz" ? "Талдау нәтижесі алынбады. API квотасын немесе файлды тексеріңіз." : "Результаты анализа не получены. Проверьте квоту API или файл.")
+        }
+      }
     }
 
     if (error) {
       console.error("[Scanner] Error encountered:", error)
       setPhase("error")
-      setErrorMessage(error.message || "AI API Error")
+      // If it's a known error from the API, it might have a Kazakh/Russian translation in the message
+      const msg = error.message || "AI API Error"
+      setErrorMessage(msg)
     }
   }, [isLoading, analysisResult, error])
 

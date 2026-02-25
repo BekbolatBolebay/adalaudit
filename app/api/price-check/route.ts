@@ -62,7 +62,7 @@ export async function POST(req: Request) {
 
         // 2. Use Gemini to extract prices and calculate average of top 3
         const result = await generateObject({
-            model: google("gemini-2.0-flash"),
+            model: google("gemini-2.5-flash-lite"),
             schema: z.object({
                 found_prices: z.array(z.object({
                     source_title: z.string(),

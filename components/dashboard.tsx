@@ -137,6 +137,7 @@ export function Dashboard() {
       const isDemoMode = localStorage.getItem("demo_mode") === "true"
 
       // Start streaming analysis and translation if no cache
+      console.log("[Dashboard] Submitting analysis/translation hooks...");
       submitAnalysis({ ...payload, isDemoMode })
       submitTranslation({ ...payload, isDemoMode })
       setIsGeneratingProtocol(true)
@@ -283,6 +284,10 @@ export function Dashboard() {
 
         {(analysisError || translationError) && (
           <div className="mx-6 mt-4 p-3 rounded-lg border border-destructive/50 bg-destructive/10 text-destructive text-xs">
+            {(() => {
+              console.error("[Dashboard] AI Error Context:", { analysisError, translationError });
+              return null;
+            })()}
             {analysisError?.message || translationError?.message || "AI Connection Error"}
           </div>
         )}

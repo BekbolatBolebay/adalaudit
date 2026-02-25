@@ -1,9 +1,16 @@
 const { createGoogleGenerativeAI } = require("@ai-sdk/google");
 const { generateText } = require("ai");
-require('dotenv').config();
+// require('dotenv').config(); // Removed to avoid dependency issues
+
+const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+
+if (!apiKey) {
+    console.error("Error: GOOGLE_GENERATIVE_AI_API_KEY is not set in environment.");
+    process.exit(1);
+}
 
 const google = createGoogleGenerativeAI({
-    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+    apiKey: apiKey,
 });
 
 async function test() {
