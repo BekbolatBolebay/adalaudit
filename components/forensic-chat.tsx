@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Send, Bot, User, X, MessageCircle, Info } from "lucide-react"
+import { Send, Bot, User, X, MessageCircle, Info, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface ForensicChatProps {
@@ -18,13 +18,11 @@ interface ForensicChatProps {
 }
 
 export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }: ForensicChatProps) {
+    const [input, setInput] = useState("")
     const {
-        messages = [],
-        input = "",
-        handleInputChange,
-        handleSubmit,
-        isLoading,
-        append
+        messages,
+        status,
+        sendMessage
     } = useChat({
         api: "/api/chat",
         body: { context },
@@ -34,6 +32,30 @@ export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }
             console.error("Chat Hook Error:", err);
         }
     } as any) as any;
+
+    const isLoading = status === "submitting" || status === "streaming";
+
+    useEffect(() => {
+        console.log("[ForensicChat] messages updated:", messages.length, "status:", status);
+    }, [messages.length, status]);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setInput(e.target.value)
+    }
+
+    const handleSubmit = (e?: React.FormEvent) => {
+        e?.preventDefault();
+        if (input.trim() && !isLoading) {
+            sendMessage([{ role: "user", content: input }]);
+            setInput("");
+        }
+    }
+
+    const handleQuickAction = (prompt: string) => {
+        if (!isLoading) {
+            sendMessage([{ role: "user", content: prompt }]);
+        }
+    }
 
     const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -84,7 +106,7 @@ export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }
                                 isEmbedded ? "h-[300px] mt-20" : "h-[400px]"
                             )}>
                                 <div className="p-4 rounded-full bg-primary/5 border border-dashed border-primary/20">
-                                    <MessageCircle className="w-8 h-8 text-primary/40" />
+                                    <Bot className="w-8 h-8 text-primary/40" />
                                 </div>
                                 <div>
                                     <h3 className="text-sm font-semibold text-foreground">Сұрақ қойыңыз</h3>
@@ -97,11 +119,7 @@ export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }
                                             variant="outline"
                                             size="sm"
                                             className="text-[11px] justify-start h-auto py-2 bg-background hover:bg-primary/5 border-primary/10 text-left"
-                                            onClick={() => {
-                                                if (typeof append === 'function') {
-                                                    append({ role: 'user', content: action.prompt })
-                                                }
-                                            }}
+                                            onClick={() => handleQuickAction(action.prompt)}
                                         >
                                             {action.label}
                                         </Button>
@@ -128,13 +146,23 @@ export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }
                                 </div>
                                 <div
                                     className={cn(
-                                        "max-w-[80%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed shadow-sm",
+                                        "max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed shadow-sm whitespace-pre-wrap",
                                         m.role === "user"
                                             ? "bg-primary text-primary-foreground rounded-tr-none"
-                                            : "bg-muted/50 border border-primary/5 rounded-tl-none"
+                                            : "bg-muted/50 border border-primary/5 rounded-tl-none text-foreground"
                                     )}
                                 >
-                                    {m.content}
+                                    {m.content ? (
+                                        typeof m.content === 'string'
+                                            ? m.content
+                                            : Array.isArray(m.content)
+                                                ? m.content.map((p: any) => p.text || (typeof p === 'string' ? p : "")).join("")
+                                                : String(m.content)
+                                    ) : m.parts && Array.isArray(m.parts) ? (
+                                        m.parts.map((p: any) => p.text || (typeof p === 'string' ? p : "")).join("")
+                                    ) : (
+                                        ""
+                                    )}
                                 </div>
                             </div>
                         ))}
@@ -143,10 +171,14 @@ export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }
                                 <div className="p-1 rounded-full border bg-primary/10 border-primary/20">
                                     <Bot className="w-3.5 h-3.5 text-primary" />
                                 </div>
-                                <div className="bg-muted/50 border border-primary/5 rounded-2xl rounded-tl-none px-4 py-3 text-xs flex gap-1 items-center">
-                                    <span className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                                    <span className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                                    <span className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce"></span>
+                                <div className="bg-muted/50 border border-primary/5 rounded-2xl rounded-tl-none px-4 py-3 text-[10px] flex gap-2 items-center">
+                                    <Loader2 className="w-3 h-3 animate-spin text-primary/60" />
+                                    <span className="text-muted-foreground italic font-medium">Инспектор ойлануда...</span>
+                                    <div className="flex gap-1 ml-1">
+                                        <span className="w-1 h-1 bg-primary/40 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                                        <span className="w-1 h-1 bg-primary/40 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                                        <span className="w-1 h-1 bg-primary/40 rounded-full animate-bounce"></span>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -168,7 +200,11 @@ export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }
                         className="text-xs h-10 bg-muted/30 focus-visible:ring-primary/20"
                     />
                     <Button type="submit" size="icon" disabled={!input || !input.trim() || isLoading} className="h-10 w-10 shrink-0">
-                        <Send className="w-4 h-4" />
+                        {isLoading ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-primary-foreground" />
+                        ) : (
+                            <Send className="w-4 h-4" />
+                        )}
                     </Button>
                 </form>
             </CardFooter>

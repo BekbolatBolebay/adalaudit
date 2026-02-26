@@ -21,7 +21,8 @@ interface MarketAnalysis {
     total_loss: number
     is_overpriced: boolean
     sources: MarketSource[]
-    comment?: string
+    comment_ru?: string
+    comment_kz?: string
 }
 
 export function MarketPriceCard({ data }: { data: MarketAnalysis | any }) {
@@ -88,10 +89,10 @@ export function MarketPriceCard({ data }: { data: MarketAnalysis | any }) {
                     </div>
                 )}
 
-                {data.comment && (
+                {(data.comment_ru || data.comment_kz || data.comment) && (
                     <div className="flex items-start gap-2 text-xs text-muted-foreground italic leading-relaxed">
                         <Info className="h-3.5 w-3.5 shrink-0 mt-0.5 opacity-70" />
-                        <p>{data.comment}</p>
+                        <p>{locale === "kz" ? (data.comment_kz || data.comment) : (data.comment_ru || data.comment)}</p>
                     </div>
                 )}
 

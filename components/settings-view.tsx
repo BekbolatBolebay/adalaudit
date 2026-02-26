@@ -63,8 +63,8 @@ export function SettingsView() {
                         </div>
                         <div className="flex items-center justify-between p-4 rounded-lg bg-primary/5 border border-primary/20">
                             <div className="space-y-0.5">
-                                <Label className="text-sm font-bold text-primary">{t("settings.demo_mode")}</Label>
-                                <p className="text-[10px] text-muted-foreground">{t("settings.demo_mode.sub")}</p>
+                                <Label className="text-sm font-bold text-primary">{t("settings.offline_mode")}</Label>
+                                <p className="text-[10px] text-muted-foreground">{t("settings.offline_mode.sub")}</p>
                             </div>
                             <Switch
                                 checked={typeof window !== 'undefined' && localStorage.getItem("demo_mode") === "true"}

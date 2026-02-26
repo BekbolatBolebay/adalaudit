@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useMemo } from "react"
 import { experimental_useObject as useObject } from "@ai-sdk/react"
 import { z } from "zod"
 import { AppSidebar } from "./app-sidebar"
@@ -16,13 +16,14 @@ import { BottomNav } from "./bottom-nav"
 import { MarketPriceCard } from "./market-price-card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useI18n } from "@/lib/i18n"
-import { History, BookOpen, Settings, Bot, AlertTriangle, X } from "lucide-react"
+import { History, BookOpen, Settings, Bot, AlertTriangle, X, Share2, Search } from "lucide-react"
+import { NetworkView } from "./network-view"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import type { AnalysisResult, TranslationResult, ProtocolData } from "@/lib/types"
 
-type View = "scanner" | "cases" | "legal" | "settings"
+type View = "scanner" | "cases" | "network" | "legal" | "settings"
 
 export function Dashboard() {
   const { t } = useI18n()
@@ -241,16 +242,45 @@ export function Dashboard() {
   }, [isAnalyzing, isTranslating, isGeneratingProtocol, analysisObject, translationObject, protocolData, isFromCache, filePayload, marketAnalysis])
 
   const handleMarketCheck = useCallback(async () => {
-    if (!analysisObject && !cachedAnalysis) return
-
-    // Try to find a laptop or product name in the summary or violations
-    // For simplicity, we'll try to extract "Laptop" or "Notebook" if it exists, or just use a generic name
     const analysis = analysisObject || cachedAnalysis
-    const productName = filePayload?.fileName.split(".")[0] || "Notebook"
+    if (!analysis) return
 
-    // Try to find unit price in violations
-    const priceViolation = analysis.violations?.find((v: any) => v.original_fragment?.includes("KZT") || v.text_ru?.includes("цена"))
-    const tenderPrice = 850000 // Fallback or extracted price
+    // 1. Dynamic Extraction of Product Name
+    // Priority: Specific summary mention > FileName-based cleanup
+    // 1. Prioritize AI-extracted product name
+    let productName = analysis.primary_product_name || filePayload?.fileName.split(".")[0] || "Notebook"
+
+    // Heuristic fallback if AI name is too generic
+    if ((!productName || productName.toLowerCase() === "товар") && analysis.summary_ru) {
+      const match = analysis.summary_ru.match(/закупку\s+([^.,]+)/i)
+      if (match && match[1]) productName = match[1].trim()
+    }
+
+    // 2. Prioritize AI-extracted Tender Price
+    let extractedPrice = analysis.detected_tender_price || 0
+
+    if (!extractedPrice) {
+      // Fallback: Look for price patterns in violations or summary
+      const priceRegex = /(\d{1,3}(?:[ ,]\d{3})*(?:\.\d+)?)\s*(?:KZT|тенге|тг)/i
+
+      // Check violations first (usually more specific)
+      analysis.violations?.forEach((v: any) => {
+        const match = v.original_fragment?.match(priceRegex) || v.text_ru?.match(priceRegex)
+        if (match && !extractedPrice) {
+          extractedPrice = parseInt(match[1].replace(/[ ,]/g, ""), 10)
+        }
+      })
+
+      // Check summary as fallback
+      if (!extractedPrice && analysis.summary_ru) {
+        const match = analysis.summary_ru.match(priceRegex)
+        if (match) extractedPrice = parseInt(match[1].replace(/[ ,]/g, ""), 10)
+      }
+    }
+
+    const tenderPrice = extractedPrice || 850000 // Fallback if extraction fails
+
+    console.log("[Dashboard] Market Check with:", { productName, tenderPrice })
 
     setIsCheckingPrices(true)
     try {
@@ -272,6 +302,11 @@ export function Dashboard() {
     }
   }, [analysisObject, cachedAnalysis, filePayload])
 
+  const chatContext = useMemo(() => ({
+    analysis: analysisObject || cachedAnalysis,
+    fileName: filePayload?.fileName
+  }), [analysisObject, cachedAnalysis, filePayload])
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
       <AppSidebar
@@ -284,11 +319,7 @@ export function Dashboard() {
 
         {(analysisError || translationError) && (
           <div className="mx-6 mt-4 p-3 rounded-lg border border-destructive/50 bg-destructive/10 text-destructive text-xs">
-            {(() => {
-              console.error("[Dashboard] AI Error Context:", { analysisError, translationError });
-              return null;
-            })()}
-            {analysisError?.message || translationError?.message || "Model Synchronisation Error"}
+            {analysisError?.message || translationError?.message || "Жүйемен байланыс қатесі (Connection Error)"}
           </div>
         )}
 
@@ -416,6 +447,7 @@ export function Dashboard() {
               <ScrollArea className="h-full">
                 <div className="mx-auto max-w-5xl px-4 md:px-6 py-6 pb-24 md:pb-8 h-full flex flex-col">
                   {activeView === "cases" && <HistoryView onItemClick={handleHistoryLoad} />}
+                  {activeView === "network" && <NetworkView />}
                   {activeView === "legal" && <LegalView />}
                   {activeView === "settings" && <SettingsView />}
                 </div>
@@ -435,10 +467,7 @@ export function Dashboard() {
                 isVisible={true}
                 onClose={() => { }}
                 isEmbedded={true}
-                context={{
-                  analysis: analysisObject || cachedAnalysis,
-                  fileName: filePayload?.fileName
-                }}
+                context={chatContext}
               />
             </div>
           )}
@@ -463,10 +492,7 @@ export function Dashboard() {
                   isVisible={true}
                   onClose={() => setIsChatVisible(false)}
                   isEmbedded={true}
-                  context={{
-                    analysis: analysisObject || cachedAnalysis,
-                    fileName: filePayload?.fileName
-                  }}
+                  context={chatContext}
                 />
               </div>
             </div>

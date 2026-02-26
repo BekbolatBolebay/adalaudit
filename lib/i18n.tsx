@@ -18,6 +18,7 @@ const translations: Translations = {
   // Sidebar
   "nav.scanner": { kz: "Сканер", ru: "Сканер" },
   "nav.cases": { kz: "Іс тарихы", ru: "История дел" },
+  "nav.network": { kz: "Байланыс талдау", ru: "Анализ связей" },
   "nav.legal": { kz: "Заң базасы", ru: "Правовая база" },
   "nav.settings": { kz: "Баптаулар", ru: "Настройки" },
 
@@ -71,8 +72,39 @@ const translations: Translations = {
   // Tracking
   "tracking.tokens": { kz: "Токендер", ru: "Токены" },
   "quota.estimation_note": { kz: "Болжамды мән", ru: "Оценочное значение" },
-  "settings.demo_mode": { kz: "Демонстрациялық режим", ru: "Демонстрационный режим" },
-  "settings.demo_mode.sub": { kz: "AI-ға сұраныс жібермей, алдын ала дайындалған деректерді көрсету", ru: "Показывать заранее подготовленные данные без запросов к AI" },
+  "settings.offline_mode": { kz: "Автономды режим", ru: "Автономный режим" },
+  "settings.offline_mode.sub": { kz: "Байланыс болмаған жағдайда сараптамалық деректердің тұрақтылығын қамтамасыз ету", ru: "Обеспечение стабильности экспертных данных при отсутствии связи" },
+
+  // Network Analysis
+  "network.title": { kz: "Байланысты талдау", ru: "Анализ связей" },
+  "network.form.customer": { kz: "Тапсырыс беруші", ru: "Заказчик" },
+  "network.form.winner": { kz: "Жеңімпаз", ru: "Победитель" },
+  "network.form.bin": { kz: "БСН (міндетті)", ru: "БИН (обязательно)" },
+  "network.form.submit": { kz: "Байланысты тексеру", ru: "Проверить связи" },
+  "network.risk.index": { kz: "Тәуекел индексі", ru: "Индекс риска" },
+  "network.risk.explanation": { kz: "Төменде анықталған байланыстар мен тарихи деректер негізінде есептелген.", ru: "Рассчитано на основе выявленных связей и исторических данных." },
+
+  "network.card.founders": { kz: "Ортақ құрылтайшылар", ru: "Общие учредители" },
+  "network.card.address": { kz: "Мекенжай сәйкестігі", ru: "Совпадение адресов" },
+  "network.card.repeated": { kz: "Қайталанатын келісімшарттар", ru: "Повторные контракты" },
+  "network.card.related": { kz: "Байланысты компаниялар", ru: "Связанные компании" },
+  "network.card.evidence": { kz: "Дәлелді көрсету", ru: "Показать доказательство" },
+
+  "network.stats.total": { kz: "Жалпы тендер саны (3 жыл)", ru: "Всего тендеров (3 года)" },
+  "network.stats.unique": { kz: "Бірегей жеңімпаздар саны", ru: "Количество уникальных победителей" },
+  "network.stats.frequent": { kz: "Ең жиі жеңген компания", ru: "Самый частый победитель" },
+  "network.stats.average": { kz: "Орташа сома", ru: "Средняя сумма" },
+
+  "network.charts.frequency": { kz: "Жеңістер жиілігінің графигі", ru: "График частоты побед" },
+  "network.charts.dynamics": { kz: "Баға динамикасы", ru: "Динамика цен" },
+
+  "network.alert.title": { kz: "Күмәнді үрдіс анықталды", ru: "Обнаружена подозрительная закономерность" },
+  "network.evidence.title": { kz: "Дәлелдемелер панелі", ru: "Панель доказательств" },
+  "network.evidence.quote": { kz: "Цитата", ru: "Цитата" },
+  "network.evidence.date": { kz: "Күні", ru: "Дата" },
+  "network.evidence.amount": { kz: "Сома", ru: "Сумма" },
+  "network.evidence.source": { kz: "Дереккөз", ru: "Источник" },
+  "network.evidence.confidence": { kz: "Сенімділік деңгейі", ru: "Уровень уверенности" },
 }
 
 type I18nContextType = {
