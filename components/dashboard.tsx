@@ -48,47 +48,14 @@ export function Dashboard() {
     return () => window.removeEventListener("storage", checkDemo)
   }, [])
 
-  // AI Streaming hooks
-  const {
-    object: analysisObject,
-    submit: submitAnalysis,
-    isLoading: isAnalyzing,
-    error: analysisError
-  } = useObject({
-    api: "/api/analyze",
-    schema: z.object({
-      risk_score: z.number(),
-      violations: z.array(z.object({
-        code: z.string(),
-        text_ru: z.string(),
-        text_kz: z.string(),
-        severity: z.enum(["critical", "high", "medium"]),
-        original_fragment: z.string(),
-        explanation: z.string(),
-      })),
-      summary_ru: z.string(),
-      summary_kz: z.string(),
-    }),
-  })
+  // Local ML state replacement for useObject
+  const [analysisObject, setAnalysisObject] = useState<any>(null)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [analysisError, setAnalysisError] = useState<any>(null)
 
-  const {
-    object: translationObject,
-    submit: submitTranslation,
-    isLoading: isTranslating,
-    error: translationError
-  } = useObject({
-    api: "/api/translate",
-    schema: z.object({
-      original_text: z.string(),
-      violations: z.array(z.object({
-        fragment: z.string(),
-        type: z.enum(["violation", "warning"]),
-        tooltip: z.string(),
-      })),
-      translated_kz: z.string(),
-      violation_count: z.number(),
-    }),
-  })
+  const [translationObject, setTranslationObject] = useState<any>(null)
+  const [isTranslating, setIsTranslating] = useState(false)
+  const [translationError, setTranslationError] = useState<any>(null)
 
   const [isGeneratingProtocol, setIsGeneratingProtocol] = useState(false)
 
@@ -137,13 +104,42 @@ export function Dashboard() {
       // Check for Demo Mode from localStorage
       const isDemoMode = localStorage.getItem("demo_mode") === "true"
 
-      // Start streaming analysis and translation if no cache
-      console.log("[Dashboard] Submitting analysis/translation hooks...");
-      submitAnalysis({ ...payload, isDemoMode })
-      submitTranslation({ ...payload, isDemoMode })
-      setIsGeneratingProtocol(true)
+      // Start Local ML analysis/translation
+      console.log("[Dashboard] Calling local API routes...");
+      setIsAnalyzing(true)
+      setIsTranslating(true)
+      setAnalysisError(null)
+      setTranslationError(null)
+
+      try {
+        // Run both in parallel
+        const [anaRes, traRes] = await Promise.all([
+          fetch("/api/analyze", {
+            method: "POST",
+            body: JSON.stringify({ ...payload, isDemoMode })
+          }).then(r => r.json()),
+          fetch("/api/translate", {
+            method: "POST",
+            body: JSON.stringify({ ...payload, isDemoMode })
+          }).then(r => r.json())
+        ])
+
+        if (anaRes.error) throw new Error(anaRes.error)
+        if (traRes.error) throw new Error(traRes.error)
+
+        setAnalysisObject(anaRes)
+        setTranslationObject(traRes)
+        setIsAnalyzing(false)
+        setIsTranslating(false)
+        setIsGeneratingProtocol(true)
+      } catch (err) {
+        console.error("[Dashboard] local API failed:", err)
+        setAnalysisError(err)
+        setIsAnalyzing(false)
+        setIsTranslating(false)
+      }
     },
-    [submitAnalysis, submitTranslation]
+    []
   )
 
   // Side effect to trigger protocol generation once analysis is sufficiently complete
@@ -158,6 +154,8 @@ export function Dashboard() {
               violations: analysisObject.violations,
               fileName: filePayload?.fileName,
               summary_ru: analysisObject.summary_ru,
+              detected_tender_price: analysisObject.detected_tender_price,
+              marketAnalysis: marketAnalysis,
             }),
           }).then(r => r.json())
 
@@ -173,7 +171,7 @@ export function Dashboard() {
       // If analysis finished but no violations found
       setIsGeneratingProtocol(false)
     }
-  }, [analysisObject, isAnalyzing, isGeneratingProtocol, filePayload])
+  }, [analysisObject, isAnalyzing, isGeneratingProtocol, filePayload, marketAnalysis])
 
   const handleReset = useCallback(() => {
     setProtocolData(null)
@@ -278,7 +276,7 @@ export function Dashboard() {
       }
     }
 
-    const tenderPrice = extractedPrice || 850000 // Fallback if extraction fails
+    const tenderPrice = extractedPrice || 0 // No more hardcoded 850k
 
     console.log("[Dashboard] Market Check with:", { productName, tenderPrice })
 

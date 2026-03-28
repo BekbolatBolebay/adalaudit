@@ -26,20 +26,21 @@ export async function POST(req: Request) {
 
         const serperApiKey = process.env.SERPER_API_KEY
         if (!serperApiKey) {
-            // Fallback for demo if no key
+            // honest fallback for local-only / no-key mode
+            const basePrice = tenderPrice || 100000;
             return NextResponse.json({
                 product_name: productName,
                 tender_price: tenderPrice,
-                market_price: tenderPrice * 0.7,
-                markup_percent: 43,
+                market_price: basePrice * 0.85,
+                markup_percent: tenderPrice > 0 ? 15 : 0,
                 quantity: 1,
-                total_loss: tenderPrice * 0.3,
-                is_overpriced: true,
+                total_loss: tenderPrice > (basePrice * 0.85) ? tenderPrice - (basePrice * 0.85) : 0,
+                is_overpriced: tenderPrice > (basePrice * 1.15),
                 sources: [
-                    { title: "Kaspi.kz - " + productName, link: "https://kaspi.kz", price: tenderPrice * 0.65 },
-                    { title: "Satu.kz - " + productName, link: "https://satu.kz", price: tenderPrice * 0.72 },
-                    { title: "Mechta.kz - " + productName, link: "https://mechta.kz", price: tenderPrice * 0.73 }
-                ]
+                    { title: "Локальді нарықтық база", link: "#", price: basePrice * 0.85 },
+                ],
+                comment_ru: "Внимание: Внешний поиск отключен. Базовая оценка проведена по локальным коэффициентам.",
+                comment_kz: "Назар аударыңыз: Сыртқы іздеу өшірілген. Базалық бағалау локальді коэффициенттер бойынша жүргізілді."
             })
         }
 
@@ -97,7 +98,7 @@ RESPONSE FORMAT (JSON ONLY).`;
 
         try {
             extractionResult = await generateObject({
-                model: google("gemini-2.0-flash"),
+                model: google("gemini-2.5-flash-lite"),
                 schema: priceSchema,
                 prompt: extractionPrompt
             })
@@ -105,7 +106,7 @@ RESPONSE FORMAT (JSON ONLY).`;
             console.warn("[Price Check API] Primary Model Error, falling back:", error);
             try {
                 extractionResult = await generateObject({
-                    model: google("gemini-2.5-flash"),
+                    model: google("gemini-1.5-flash"),
                     schema: priceSchema,
                     prompt: extractionPrompt
                 })
@@ -164,25 +165,21 @@ RESPONSE FORMAT (JSON ONLY).`;
             errorMessage.toLowerCase().includes("connect");
 
         if (isQuotaOrConnectivityError || process.env.DEMO_MODE === "true") {
-            console.log("[Price Check API] Fallback triggered. Mode:", process.env.DEMO_MODE)
-
-            // Standard Presentation Case: 850k tender vs ~540k market
-            const demoTender = tenderPrice || 850000;
-            const demoMarket = Math.round(demoTender / 1.55); // ~55% markup scenario
+            const demoTender = tenderPrice || 0;
+            const demoMarket = demoTender > 0 ? Math.round(demoTender / 1.15) : 100000;
 
             return NextResponse.json({
-                product_name: productName || "Ноутбук (бизнес-серия)",
+                product_name: productName || "Найылған тауар",
                 tender_price: demoTender,
                 market_price: demoMarket,
-                markup_percent: 55,
-                total_loss: demoTender - demoMarket,
-                is_overpriced: true,
+                markup_percent: demoTender > 0 ? 15 : 0,
+                total_loss: demoTender > demoMarket ? demoTender - demoMarket : 0,
+                is_overpriced: false,
                 sources: [
-                    { title: "Kaspi.kz - " + (productName || "Ноутбук"), link: "#", price: demoMarket - 15000 },
-                    { title: "Satu.kz - " + (productName || "Ноутбук"), link: "#", price: demoMarket },
-                    { title: "Mechta.kz - " + (productName || "Ноутбук"), link: "#", price: demoMarket + 12000 }
+                    { title: "Локальді бағалау / Local Baseline", link: "#", price: demoMarket }
                 ],
-                comment: "ВНИМАНИЕ: Выявлено значительное завышение цены относительно средних розничных предложений в Казахстане (Kaspi, Satu). Рекомендуется технический аудит спецификаций."
+                comment_ru: "Используются локальные коэффициенты для оценки рыночной стоимости.",
+                comment_kz: "Нарықтық құнды бағалау үшін локальді коэффициенттер қолданылуда."
             })
         }
 

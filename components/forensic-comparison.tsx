@@ -152,7 +152,7 @@ export function ForensicComparison({
           </div>
           <ScrollArea className="h-[500px]">
             {isLoading && !translationResult?.original_text ? (
-              <LoadingState text="Gemini 2.5 Flash Lite" subtitle="Analyzing original text..." />
+              <LoadingState text="ADAL AI EXPERT" subtitle="Analyzing original text..." />
             ) : translationResult?.original_text ? (
               <div className="p-4 font-mono text-xs leading-relaxed whitespace-pre-wrap">
                 {violationSpans.map(
@@ -238,7 +238,7 @@ export function ForensicComparison({
           <ScrollArea className="h-[500px]">
             {isLoading && !translationResult?.translated_kz ? (
               <LoadingState
-                text="Gemini 2.5 Flash Lite"
+                text="ADAL AI EXPERT"
                 subtitle="Generating legal translation..."
               />
             ) : translationResult?.translated_kz ? (
@@ -277,8 +277,8 @@ export function ForensicComparison({
 }
 
 function LoadingState({ text, subtitle }: { text: string; subtitle: string }) {
-  const label = text === "Gemini 2.5 Flash Lite"
-    ? "Gemini 2.5 Flash Lite"
+  const label = text === "ADAL AI EXPERT"
+    ? "ADAL AI EXPERT"
     : text
 
   return (

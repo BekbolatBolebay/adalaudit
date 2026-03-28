@@ -13,6 +13,8 @@ import {
     Repeat,
     Share2,
     ShieldAlert,
+    CheckCircle2,
+    TrendingDown,
     TrendingUp,
     BarChart3,
     FileText,
@@ -60,6 +62,7 @@ export function NetworkView() {
     const { t, locale } = useI18n()
     const [isSearching, setIsSearching] = useState(false)
     const [showResults, setShowResults] = useState(false)
+    const [result, setResult] = useState<any>(null)
     const [evidenceOpen, setEvidenceOpen] = useState(false)
     const [selectedEvidence, setSelectedEvidence] = useState<any>(null)
     const [bin, setBin] = useState("")
@@ -67,7 +70,12 @@ export function NetworkView() {
     const handleSearch = () => {
         if (!bin || bin.length < 12) return
         setIsSearching(true)
+        setShowResults(false)
+
         setTimeout(() => {
+            const { getNetworkMock } = require("@/lib/demo-data")
+            const mockData = getNetworkMock(bin)
+            setResult(mockData)
             setIsSearching(false)
             setShowResults(true)
         }, 1500)
@@ -121,6 +129,10 @@ export function NetworkView() {
                             <Input placeholder="ГУ 'Управление...'" className="bg-background text-sm" />
                         </div>
                         <div className="space-y-2">
+                            <Label className="text-xs">{t("network.form.customer_bin")}</Label>
+                            <Input placeholder="123456789012" className="bg-background text-sm font-mono" maxLength={12} />
+                        </div>
+                        <div className="space-y-2">
                             <Label className="text-xs">{t("network.form.winner")}</Label>
                             <Input placeholder="ТОО '...'" className="bg-background text-sm" />
                         </div>
@@ -155,15 +167,23 @@ export function NetworkView() {
                 </Card>
 
                 {/* Risk Assessment Result */}
-                {showResults && (
-                    <Card className="lg:col-span-2 border-red-500/20 bg-red-500/5 animate-in fade-in slide-in-from-right-4">
+                {showResults && result && (
+                    <Card className={cn(
+                        "lg:col-span-2 animate-in fade-in slide-in-from-right-4",
+                        result.riskScore > 50 ? "border-red-500/20 bg-red-500/5" : "border-emerald-500/20 bg-emerald-500/5"
+                    )}>
                         <CardHeader className="p-4 flex flex-row items-center justify-between space-y-0">
                             <CardTitle className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
-                                <ShieldAlert className="w-4 h-4 text-red-500" />
+                                <ShieldAlert className={cn("w-4 h-4", result.riskScore > 50 ? "text-red-500" : "text-emerald-500")} />
                                 {t("network.risk.index")}
                             </CardTitle>
-                            <Badge variant="outline" className="text-red-600 border-red-200 bg-red-100 text-[10px] uppercase font-bold tracking-widest">
-                                Critical Risk
+                            <Badge variant="outline" className={cn(
+                                "text-[10px] uppercase font-bold tracking-widest",
+                                result.riskScore > 50
+                                    ? "text-red-600 border-red-200 bg-red-100"
+                                    : "text-emerald-600 border-emerald-200 bg-emerald-100"
+                            )}>
+                                {result.riskScore > 50 ? "Critical Risk" : "Low Risk"}
                             </Badge>
                         </CardHeader>
                         <CardContent className="p-4 pt-0 flex flex-col md:flex-row gap-6 items-center">
@@ -171,10 +191,13 @@ export function NetworkView() {
                                 <svg className="w-full h-full" viewBox="0 0 100 100">
                                     <circle className="text-muted/20" strokeWidth="10" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50" />
                                     <circle
-                                        className="text-red-500 transition-all duration-1000 ease-out"
+                                        className={cn(
+                                            "transition-all duration-1000 ease-out",
+                                            result.riskScore > 50 ? "text-red-500" : "text-emerald-500"
+                                        )}
                                         strokeWidth="10"
                                         strokeDasharray={251.2}
-                                        strokeDashoffset={251.2 * (1 - 85 / 100)}
+                                        strokeDashoffset={251.2 * (1 - result.riskScore / 100)}
                                         strokeLinecap="round"
                                         stroke="currentColor"
                                         fill="transparent"
@@ -183,14 +206,15 @@ export function NetworkView() {
                                         cy="50"
                                         transform="rotate(-90 50 50)"
                                     />
-                                    <text x="50" y="55" textAnchor="middle" className="text-2xl font-bold fill-foreground">85</text>
+                                    <text x="50" y="55" textAnchor="middle" className="text-2xl font-bold fill-foreground">{result.riskScore}</text>
                                 </svg>
                             </div>
                             <div>
-                                <h4 className="text-lg font-bold">Высокая вероятность сговора</h4>
+                                <h4 className="text-lg font-bold">
+                                    {locale === "kz" ? result.riskTitle_kz : result.riskTitle_ru}
+                                </h4>
                                 <p className="text-xs text-muted-foreground leading-relaxed mt-1">
-                                    {t("network.risk.explanation")}
-                                    Выявлены множественные совпадения по учредителям и аномальная динамика побед в данном регионе.
+                                    {locale === "kz" ? result.riskDesc_kz : result.riskDesc_ru}
                                 </p>
                             </div>
                         </CardContent>
@@ -201,75 +225,94 @@ export function NetworkView() {
             {showResults && (
                 <>
                     {/* Found Connections Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <Card className="bg-background hover:border-primary/40 transition-all group overflow-hidden border-border/50">
-                            <div className="p-4 space-y-3">
-                                <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 w-fit">
-                                    <Users className="w-4 h-4 text-blue-500" />
+                    {result?.evidenceFound ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <Card className="bg-background hover:border-primary/40 transition-all group overflow-hidden border-border/50">
+                                <div className="p-4 space-y-3">
+                                    <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 w-fit">
+                                        <Users className="w-4 h-4 text-blue-500" />
+                                    </div>
+                                    <h4 className="text-xs font-bold uppercase tracking-tight">{t("network.card.founders")}</h4>
+                                    <p className="text-[10px] text-muted-foreground line-clamp-2">Совпадение по 3 ключевым бенефициарам холдинга.</p>
+                                    <div className="flex items-center justify-between pt-2">
+                                        <span className="text-[10px] font-bold text-blue-600">98% Confidence</span>
+                                        <Button variant="ghost" size="sm" className="h-6 text-[9px] px-2 gap-1" onClick={() => openEvidence('founders')}>
+                                            {t("network.card.evidence")}
+                                            <ChevronRight className="w-3 h-3" />
+                                        </Button>
+                                    </div>
                                 </div>
-                                <h4 className="text-xs font-bold uppercase tracking-tight">{t("network.card.founders")}</h4>
-                                <p className="text-[10px] text-muted-foreground line-clamp-2">Совпадение по 3 ключевым бенефициарам холдинга.</p>
-                                <div className="flex items-center justify-between pt-2">
-                                    <span className="text-[10px] font-bold text-blue-600">98% Confidence</span>
-                                    <Button variant="ghost" size="sm" className="h-6 text-[9px] px-2 gap-1" onClick={() => openEvidence('founders')}>
-                                        {t("network.card.evidence")}
-                                        <ChevronRight className="w-3 h-3" />
-                                    </Button>
-                                </div>
-                            </div>
-                        </Card>
+                            </Card>
 
-                        <Card className="bg-background hover:border-primary/40 transition-all group overflow-hidden border-border/50">
-                            <div className="p-4 space-y-3">
-                                <div className="p-2 rounded-lg bg-orange-500/10 border border-orange-500/20 w-fit">
-                                    <MapPin className="w-4 h-4 text-orange-500" />
+                            <Card className="bg-background hover:border-primary/40 transition-all group overflow-hidden border-border/50">
+                                <div className="p-4 space-y-3">
+                                    <div className="p-2 rounded-lg bg-orange-500/10 border border-orange-500/20 w-fit">
+                                        <MapPin className="w-4 h-4 text-orange-500" />
+                                    </div>
+                                    <h4 className="text-xs font-bold uppercase tracking-tight">{t("network.card.address")}</h4>
+                                    <p className="text-[10px] text-muted-foreground line-clamp-2">Регистрация в одном офисном помещении (пр. Абая, 150).</p>
+                                    <div className="flex items-center justify-between pt-2">
+                                        <span className="text-[10px] font-bold text-orange-600">100% Match</span>
+                                        <Button variant="ghost" size="sm" className="h-6 text-[9px] px-2 gap-1" onClick={() => openEvidence('address')}>
+                                            {t("network.card.evidence")}
+                                            <ChevronRight className="w-3 h-3" />
+                                        </Button>
+                                    </div>
                                 </div>
-                                <h4 className="text-xs font-bold uppercase tracking-tight">{t("network.card.address")}</h4>
-                                <p className="text-[10px] text-muted-foreground line-clamp-2">Регистрация в одном офисном помещении (пр. Абая, 150).</p>
-                                <div className="flex items-center justify-between pt-2">
-                                    <span className="text-[10px] font-bold text-orange-600">100% Match</span>
-                                    <Button variant="ghost" size="sm" className="h-6 text-[9px] px-2 gap-1" onClick={() => openEvidence('address')}>
-                                        {t("network.card.evidence")}
-                                        <ChevronRight className="w-3 h-3" />
-                                    </Button>
-                                </div>
-                            </div>
-                        </Card>
+                            </Card>
 
-                        <Card className="bg-background hover:border-primary/40 transition-all group overflow-hidden border-border/50">
-                            <div className="p-4 space-y-3">
-                                <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20 w-fit">
-                                    <Repeat className="w-4 h-4 text-purple-500" />
+                            <Card className="bg-background hover:border-primary/40 transition-all group overflow-hidden border-border/50">
+                                <div className="p-4 space-y-3">
+                                    <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20 w-fit">
+                                        <Repeat className="w-4 h-4 text-purple-500" />
+                                    </div>
+                                    <h4 className="text-xs font-bold uppercase tracking-tight">{t("network.card.repeated")}</h4>
+                                    <p className="text-[10px] text-muted-foreground line-clamp-2">12 контрактов за 2 года между данными контрагентами.</p>
+                                    <div className="flex items-center justify-between pt-2">
+                                        <span className="text-[10px] font-bold text-purple-600">High Frequency</span>
+                                        <Button variant="ghost" size="sm" className="h-6 text-[9px] px-2 gap-1">
+                                            {t("network.card.evidence")}
+                                            <ChevronRight className="w-3 h-3" />
+                                        </Button>
+                                    </div>
                                 </div>
-                                <h4 className="text-xs font-bold uppercase tracking-tight">{t("network.card.repeated")}</h4>
-                                <p className="text-[10px] text-muted-foreground line-clamp-2">12 контрактов за 2 года между данными контрагентами.</p>
-                                <div className="flex items-center justify-between pt-2">
-                                    <span className="text-[10px] font-bold text-purple-600">High Frequency</span>
-                                    <Button variant="ghost" size="sm" className="h-6 text-[9px] px-2 gap-1">
-                                        {t("network.card.evidence")}
-                                        <ChevronRight className="w-3 h-3" />
-                                    </Button>
-                                </div>
-                            </div>
-                        </Card>
+                            </Card>
 
-                        <Card className="bg-background hover:border-primary/40 transition-all group overflow-hidden border-border/50">
-                            <div className="p-4 space-y-3">
-                                <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 w-fit">
-                                    <Share2 className="w-4 h-4 text-emerald-500" />
+                            <Card className="bg-background hover:border-primary/40 transition-all group overflow-hidden border-border/50">
+                                <div className="p-4 space-y-3">
+                                    <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 w-fit">
+                                        <Share2 className="w-4 h-4 text-emerald-500" />
+                                    </div>
+                                    <h4 className="text-xs font-bold uppercase tracking-tight">{t("network.card.related")}</h4>
+                                    <p className="text-[10px] text-muted-foreground line-clamp-2">Выявлена цепочка из 5 дочерних организаций.</p>
+                                    <div className="flex items-center justify-between pt-2">
+                                        <span className="text-[10px] font-bold text-emerald-600">Network Map</span>
+                                        <Button variant="ghost" size="sm" className="h-6 text-[9px] px-2 gap-1">
+                                            {t("network.card.evidence")}
+                                            <ChevronRight className="w-3 h-3" />
+                                        </Button>
+                                    </div>
                                 </div>
-                                <h4 className="text-xs font-bold uppercase tracking-tight">{t("network.card.related")}</h4>
-                                <p className="text-[10px] text-muted-foreground line-clamp-2">Выявлена цепочка из 5 дочерних организаций.</p>
-                                <div className="flex items-center justify-between pt-2">
-                                    <span className="text-[10px] font-bold text-emerald-600">Network Map</span>
-                                    <Button variant="ghost" size="sm" className="h-6 text-[9px] px-2 gap-1">
-                                        {t("network.card.evidence")}
-                                        <ChevronRight className="w-3 h-3" />
-                                    </Button>
+                            </Card>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Card className="p-6 border-emerald-500/10 bg-emerald-500/2 flex items-center gap-4">
+                                <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+                                <div>
+                                    <h4 className="font-bold">{locale === 'kz' ? 'Байланыстар тізімі таза' : 'Список связей чист'}</h4>
+                                    <p className="text-xs text-muted-foreground">{locale === 'kz' ? 'Бірдей құрылтайшылар немесе мекенжайлар жоқ.' : 'Общих учредителей или адресов не обнаружено.'}</p>
                                 </div>
-                            </div>
-                        </Card>
-                    </div>
+                            </Card>
+                            <Card className="p-6 border-emerald-500/10 bg-emerald-500/2 flex items-center gap-4">
+                                <TrendingDown className="w-8 h-8 text-emerald-500" />
+                                <div>
+                                    <h4 className="font-bold">{locale === 'kz' ? 'Төмен баға динамикасы' : 'Низкая динамика цен'}</h4>
+                                    <p className="text-xs text-muted-foreground">{locale === 'kz' ? 'Бағаның күрт көтерілуі байқалмайды.' : 'Резких скачков цен не зафиксировано.'}</p>
+                                </div>
+                            </Card>
+                        </div>
+                    )}
 
                     {/* Historical Analytics */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -337,36 +380,55 @@ export function NetworkView() {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="p-4 rounded-xl border border-border bg-card shadow-sm">
                             <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{t("network.stats.total")}</p>
-                            <p className="text-2xl font-bold mt-1">1,245</p>
+                            <p className="text-2xl font-bold mt-1">{result?.stats?.total || "0"}</p>
                         </div>
                         <div className="p-4 rounded-xl border border-border bg-card shadow-sm">
                             <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{t("network.stats.unique")}</p>
-                            <p className="text-2xl font-bold mt-1">86</p>
+                            <p className="text-2xl font-bold mt-1">{result?.stats?.unique || "0"}</p>
                         </div>
                         <div className="p-4 rounded-xl border border-border bg-card shadow-sm">
                             <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{t("network.stats.frequent")}</p>
-                            <p className="text-base font-bold mt-1 truncate">Build-KZ</p>
+                            <p className="text-base font-bold mt-1 truncate">{result?.stats?.frequent || "---"}</p>
                         </div>
                         <div className="p-4 rounded-xl border border-border bg-card shadow-sm">
                             <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{t("network.stats.average")}</p>
-                            <p className="text-2xl font-bold mt-1">4.2M</p>
+                            <p className="text-2xl font-bold mt-1">{result?.stats?.average || "0"}</p>
                         </div>
                     </div>
 
                     {/* Suspicious Pattern Alert */}
-                    <div className="p-4 rounded-xl border-2 border-red-500 bg-red-500/5 animate-pulse">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-full bg-red-500 text-white">
-                                <ShieldAlert className="w-5 h-5" />
-                            </div>
-                            <div>
-                                <h4 className="font-bold text-red-600">{t("network.alert.title")}</h4>
-                                <p className="text-xs text-red-600/80 mt-0.5">
-                                    Данные компании участвовали в 15 тендерах вместе, при этом в 14 случаях одна компания резко снижала цену, а вторая забирала лот по максимальной стоимости.
-                                </p>
+                    {result?.evidenceFound && (
+                        <div className="p-4 rounded-xl border-2 border-red-500 bg-red-500/5 animate-pulse">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-full bg-red-500 text-white">
+                                    <ShieldAlert className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-red-600">{t("network.alert.title")}</h4>
+                                    <p className="text-xs text-red-600/80 mt-0.5">
+                                        {locale === "kz" ? result.alerts_kz : result.alerts_ru}
+                                    </p>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
+                    {!result?.evidenceFound && (
+                        <div className="p-4 rounded-xl border border-emerald-500 bg-emerald-500/5">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-full bg-emerald-500 text-white">
+                                    <CheckCircle2 className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-emerald-600">
+                                        {locale === "kz" ? "Күмәнді байланыстар табылмады" : "Подозрительных связей не обнаружено"}
+                                    </h4>
+                                    <p className="text-xs text-emerald-600/80 mt-0.5">
+                                        {locale === "kz" ? result.alerts_kz : result.alerts_ru}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </>
             )}
 

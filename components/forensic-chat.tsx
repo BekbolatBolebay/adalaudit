@@ -18,22 +18,50 @@ interface ForensicChatProps {
 }
 
 export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }: ForensicChatProps) {
+    const [messages, setMessages] = useState<any[]>([])
+    const [isLoading, setIsLoading] = useState(false)
     const [input, setInput] = useState("")
-    const {
-        messages,
-        status,
-        sendMessage
-    } = useChat({
-        api: "/api/chat",
-        body: { context },
-        id: "forensic-chat",
-        initialMessages: [],
-        onError: (err: any) => {
-            console.error("Chat Hook Error:", err);
-        }
-    } as any) as any;
 
-    const isLoading = status === "submitting" || status === "streaming";
+    const handleSubmit = async (e?: React.FormEvent, customInput?: string) => {
+        e?.preventDefault();
+        const text = customInput || input;
+        if (!text.trim() || isLoading) return;
+
+        const userMessage = { id: Date.now().toString(), role: "user", content: text };
+        setMessages(prev => [...prev, userMessage]);
+        setInput("");
+        setIsLoading(true);
+
+        try {
+            const res = await fetch("/api/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ messages: [...messages, userMessage], context })
+            });
+
+            if (!res.ok) throw new Error("Chat service error");
+
+            const data = await res.json();
+            setMessages(prev => [...prev, {
+                id: (Date.now() + 1).toString(),
+                role: "assistant",
+                content: data.content || data.text
+            }]);
+        } catch (err) {
+            console.error("Local Chat Error:", err);
+            setMessages(prev => [...prev, {
+                id: (Date.now() + 1).toString(),
+                role: "assistant",
+                content: "Кешіріңіз, жергілікті чат қызметінде қате орын алды."
+            }]);
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    const handleQuickAction = (prompt: string) => {
+        handleSubmit(undefined, prompt);
+    }
 
     useEffect(() => {
         console.log("[ForensicChat] messages updated:", messages.length, "status:", status);
@@ -43,19 +71,6 @@ export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }
         setInput(e.target.value)
     }
 
-    const handleSubmit = (e?: React.FormEvent) => {
-        e?.preventDefault();
-        if (input.trim() && !isLoading) {
-            sendMessage([{ role: "user", content: input }]);
-            setInput("");
-        }
-    }
-
-    const handleQuickAction = (prompt: string) => {
-        if (!isLoading) {
-            sendMessage([{ role: "user", content: prompt }]);
-        }
-    }
 
     const scrollRef = useRef<HTMLDivElement>(null)
 

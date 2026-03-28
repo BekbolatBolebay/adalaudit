@@ -74,7 +74,7 @@ ${isKz ? "Қолы" : "Подпись"}: ________________    ${isKz ? "Күні"
           <Loader2 className="h-6 w-6 text-primary animate-spin" />
           <div className="text-center">
             <p className="text-xs font-semibold text-primary uppercase tracking-widest animate-pulse">
-              Gemini 2.5 Flash
+              ADAL AI EXPERT
             </p>
             <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">
               {locale === "kz"

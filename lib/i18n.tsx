@@ -78,8 +78,9 @@ const translations: Translations = {
   // Network Analysis
   "network.title": { kz: "Байланысты талдау", ru: "Анализ связей" },
   "network.form.customer": { kz: "Тапсырыс беруші", ru: "Заказчик" },
-  "network.form.winner": { kz: "Жеңімпаз", ru: "Победитель" },
-  "network.form.bin": { kz: "БСН (міндетті)", ru: "БИН (обязательно)" },
+  "network.form.customer_bin": { kz: "Тапсырыс беруші БСН-і", ru: "БИН Заказчика" },
+  "network.form.winner": { kz: "Жеңімпаз / Қатысушы", ru: "Победитель / Участник" },
+  "network.form.bin": { kz: "Жеңімпаз БСН-і (міндетті)", ru: "БИН Победителя (обязательно)" },
   "network.form.submit": { kz: "Байланысты тексеру", ru: "Проверить связи" },
   "network.risk.index": { kz: "Тәуекел индексі", ru: "Индекс риска" },
   "network.risk.explanation": { kz: "Төменде анықталған байланыстар мен тарихи деректер негізінде есептелген.", ru: "Рассчитано на основе выявленных связей и исторических данных." },

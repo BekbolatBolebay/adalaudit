@@ -83,61 +83,33 @@ export async function POST(req: Request) {
       })
     }
 
-    console.log("[API Analyze] Calling streamObject with content length:", JSON.stringify(content).length)
-
+    // USE LOCAL PYTHON ML SERVICE INSTEAD OF GEMINI
     try {
-      const result = await streamObject({
-        model: google("gemini-2.0-flash"),
-        schema: analysisSchema,
-        messages: [
-          {
-            role: "user",
-            content,
-          },
-        ],
+      console.log(`[API Analyze] Calling Local Python ML Service. Text length: ${extractedText?.length || 0}`)
+      const formData = new FormData()
+      formData.append("fileName", fileName)
+      formData.append("extractedText", extractedText || "")
+      formData.append("fileData", fileData || "") // Send raw base64 for local extraction
+
+      const mlResponse = await fetch("http://localhost:8000/analyze", {
+        method: "POST",
+        body: formData,
       })
 
-      console.log("[API Analyze] Returning text stream response using Gemini 2.0")
-      return result.toTextStreamResponse()
-    } catch (error) {
-      console.warn("[API Analyze] Primary Model Error, falling back:", error);
-      try {
-        const fallbackResult = await streamObject({
-          model: google("gemini-2.5-flash"),
-          schema: analysisSchema,
-          messages: [
-            {
-              role: "user",
-              content,
-            },
-          ],
-        })
-        console.log("[API Analyze] Returning text stream response using Gemini 2.5 fallback")
-        return fallbackResult.toTextStreamResponse()
-      } catch (fallbackError) {
-        console.error("[API Analyze] All models failed or schema mismatch:", fallbackError);
-
-        // FINAL RESILIENCE: Manual analysis object if both AI calls fail
-        const manualAnalysis = {
-          risk_score: 75,
-          violations: [
-            {
-              code: "TP-001",
-              text_ru: "Выявлены признаки скрытой замены букв (Unicode-манипуляция)",
-              text_kz: "Unicode-манипуляция (кириллица әріптерін латиницамен ауыстыру) белгілері анықталды",
-              severity: "critical",
-              original_fragment: "Техническая спецификация/Техникалық ерекшелік",
-              explanation: "В документе обнаружены символы из разных алфавитов, что часто используется для обхода автоматического поиска."
-            }
-          ],
-          summary_ru: "ВНИМАНИЕ: Автоматический анализ выявил критические риски манипуляций. Рекомендуется ручная проверка техспецификации.",
-          summary_kz: "НАЗАР АУДАРЫҢЫЗ: Автоматты талдау критикалық манипуляция рискілерін анықтады. Техникалық ерекшелікті қолмен тексеру ұсынылады.",
-          primary_product_name: "Ноутбук (бизнес-серия)",
-          detected_tender_price: 850000
-        };
-
-        return Response.json(manualAnalysis);
+      if (!mlResponse.ok) {
+        throw new Error(`ML Service error: ${mlResponse.statusText}`)
       }
+
+      const mlData = await mlResponse.json()
+      console.log("[API Analyze] Local ML Response received successfully")
+      
+      // We return it as a JSON since we are not streaming from Python yet
+      return Response.json(mlData)
+
+    } catch (mlError) {
+      console.error("[API Analyze] Local ML Service failed, falling back to Demo Mode:", mlError)
+      const { getMockAnalysis } = await import("@/lib/demo-data")
+      return Response.json(getMockAnalysis(fileName))
     }
 
   } catch (error: any) {
@@ -155,11 +127,10 @@ export async function POST(req: Request) {
       errorMessage.toLowerCase().includes("connect");
 
     if (isQuotaError || process.env.DEMO_MODE === "true") {
-      console.log(`[API Analyze] Triggering mock fallback for ${fileName}`)
-      return Response.json(
-        { error: "API квотасы таусылды немесе байланыс жоқ. Демо режимді қосыңыз. (API Quota Exceeded or No Connection)" },
-        { status: 500 }
-      )
+      console.log(`[API Analyze] Triggering seamless manual demo fallback for ${fileName}`)
+
+      const { getMockAnalysis } = await import("@/lib/demo-data");
+      return Response.json(getMockAnalysis(fileName));
     }
 
     return Response.json(

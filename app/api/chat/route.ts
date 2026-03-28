@@ -48,23 +48,49 @@ ${(JSON.stringify(context || {}, null, 2) || "").slice(0, 10000)}
             return { role, content: content || "No content provided" };
         }).filter((m: any) => m.content !== "No content provided");
 
+        // Validation Guard: AI SDK requires at least one message
+        if (messages.length === 0) {
+            console.log("[API Chat] Empty message list detected. Returning default greeting.");
+            return new Response("Привет! Я ваш помощник по форензик-анализу. Загрузите документ или задайте вопрос по текущему анализу, и я помогу вам разобраться. (Сәлем! Мен сіздің форензик-талдау көмекшіңізбін. Құжатты жүктеңіз немесе ағымдағы талдау бойынша сұрақ қойыңыз.)", {
+                headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+            });
+        }
+
         console.log("[API Chat] Processing request with", messages.length, "messages");
 
         try {
-            // Priority: Gemini 2.0 Flash for maximum speed and capability
-            const result = await streamText({
-                model: google("gemini-2.0-flash"),
-                system: systemPrompt,
-                messages,
-            })
+            // Priority: Gemini 2.5 Flash-Lite for maximum speed and efficiency
+        // 100% LOCAL MODE: CALL PYTHON ML SERVICE FOR CHAT
+    console.log("[API Chat] Calling Local Python ML Service for Expert Response")
+    
+    try {
+      const mlResponse = await fetch("http://localhost:8000/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages, context })
+      })
 
-            return result.toTextStreamResponse()
+      if (!mlResponse.ok) {
+        throw new Error(`ML Chat Service error: ${mlResponse.statusText}`)
+      }
+
+      const mlData = await mlResponse.json()
+      console.log("[API Chat] Local Expert Response received")
+      return Response.json(mlData)
+
+    } catch (mlError) {
+      console.error("[API Chat] Local ML Chat failed:", mlError)
+      return Response.json({
+        role: "assistant",
+        content: "Кешіріңіз, жергілікті сараптама қызметі уақытша қолжетімсіз."
+      })
+    }
         } catch (error: any) {
             console.error("[API Chat] Primary Model Error, falling back:", error);
 
-            // Emergency fallback to Gemini 2.5 Flash
+            // Emergency fallback to Gemini 1.5 Flash
             const fallbackResult = await streamText({
-                model: google("gemini-2.5-flash"),
+                model: google("gemini-1.5-flash"),
                 system: systemPrompt,
                 messages,
             })
