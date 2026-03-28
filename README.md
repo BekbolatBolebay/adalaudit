@@ -1,39 +1,51 @@
-# Adal Audit — Жасанды интеллектке негізделген форензик платформасы
+# ⚖️ Adal Audit — Sovereign Forensic Platform
 
-**Adal Audit** (Адал Аудит) — бұл жасанды интеллект (Gemini AI) көмегімен мемлекеттік сатып алуларды автоматты түрде форензик-аудиттеуге және талдауға арналған инновациялық платформа. Жоба ашықтықты қамтамасыз етуге, сыбайлас жемқорлық қауіптерін анықтауға және тендерлік құжаттаманың заңдылығын тексеруді автоматтандыруға бағытталған.
+**Adal Audit** (Адал Аудит) — бұл мемлекеттік сатып алуларды форензик-аудиттеуге және сыбайлас жемқорлық қауіптерін анықтауға арналған **100% дербес (sovereign)** локальді платформа. 
+
+Жобаның басты ерекшелігі — ол сыртқы ИИ сервистеріне (Gemini/ChatGPT) тәуелді емес. Барлық талдаулар мен аудармалар **локальді Python ML-микросервисі** арқылы, деректердің қауіпсіздігін (Data Sovereignty) сақтай отырып орындалады.
 
 ## 🚀 Негізгі мүмкіндіктер
 
-- **AI Scanner**: PDF және мәтіндік құжаттарды ҚР заңнамасына сәйкестігін қас-қағым сәтте талдау.
-- **Risk Assessment**: Тәуекелдерді 0-ден 100-ге дейінгі шкаламен бағалау және әрбір анықталған бұзушылықты егжей-тегжейлі сипаттау.
-- **Market Price Check**: Бағаны негізсіз көтеруді анықтау үшін тендерлік бағаларды орташа нарықтық бағалармен автоматты түрде салыстыру.
-- **Inspection Protocol**: Тексеру нәтижелері бойынша сараптамалық хаттаманы автоматты түрде жасау.
-- **Bilingual Interface**: Қазақ және орыс тілдерін толық қолдау.
-- **Forensic Chat**: Тексерудің қыр-сырын нақтылауға арналған кірістірілген ИИ-көмекші.
+- **Sovereign AI Scanner**: Құжаттарды (PDF/Мәтін) локальді машинада талдау. Сыртқы желіге деректер шықпайды.
+- **Forensic Engine**: Мәтіндегі Unicode-манипуляцияны (латын әріптерімен алмастыру), жасырын техникалық кедергілерді және бағаны негізсіз көтеруді автоматты түрде анықтау.
+- **Market Price Analysis**: Тендерлік бағаны нарықтық көрсеткіштермен салыстыру және бюджеттік шығынды есептеу.
+- **Inspection Protocol**: Тексеру нәтижелері бойынша ресми сараптамалық хаттаманы (Draft) автоматты түрде жасау және экспорттау.
+- **Local Legal Translation**: Құжаттарды локальді заңды глоссарий негізінде сапалы түрде қазақшалау.
+- **Expert Forensic Chat**: Анализ жасалып жатқан құжаттың контекстін білетін локальді "AI Инспектормен" сұхбат.
 
 ## 🛠 Технологиялық стек
 
-- **Framework**: [Next.js 15+](https://nextjs.org/) (App Router)
-- **AI Integration**: [Vercel AI SDK](https://sdk.vercel.ai/) & [Google Gemini Pro](https://deepmind.google/technologies/gemini/)
-- **UI Components**: [Radix UI](https://www.radix-ui.com/) & [Shadcn/UI](https://ui.shadcn.com/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **State Management**: React Hooks & Local Storage Cache
-- **Types**: [TypeScript](https://www.typescriptlang.org/)
+- **Core Framework**: [Next.js 15+](https://nextjs.org/) (App Router)
+- **ML Microservice**: [FastAPI](https://fastapi.tiangolo.com/) (Python 3.10+)
+- **Forensic Logic**: Custom Heuristic Engine (Regex-based Unicode Detection & NLP Price Extraction)
+- **UI Components**: [Shadcn/UI](https://ui.shadcn.com/) & Tailwind CSS (Premium Glassmorphism Design)
+- **State Management**: React Hooks & Local Cache
 
 ## 📂 Жоба құрылымы
 
-- `app/api/analyze`: Құжаттарды терең ИИ-талдауға арналған эндпоинт.
-- `app/api/price-check`: Нарықтық бағаларды бақылау сервисі.
-- `app/api/protocol`: Ресми қорытындыларды генераторлаушы.
-- `components/`: Қайта қолданылатын UI-компоненттер кітапханасы.
-- `lib/i18n`: Локализация жүйесі.
+- `ml-service/`: **Жобаның жүрегі.** Талдау, аударма және чатқа жауап беретін локальді Python сервисі.
+- `app/api/`: Frontend мен ML-сервис арасындағы байланысты реттейтін Next.js API роуттары.
+- `components/`: Forensic Scanner, Risk Gauge, Expert Chat және Protocol генераторы сияқты премиум UI компоненттері.
+- `lib/i18n`: Қазақ және орыс тілдеріндегі толық локализация жүйесі.
 
 ## 🏁 Жұмысты бастау
 
-1. Репозиторийді клондаңыз.
-2. Тәуелділіктерді орнатыңыз: `npm install` немесе `pnpm install`.
-3. `.env` файлына `GOOGLE_GENERATED_AI_API_KEY` кілтін қосыңыз.
-4. Әзірлеу режимін іске қосыңыз: `npm run dev`.
+### 1. ML-сервисті іске қосу (Local Engine)
+```bash
+cd ml-service
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python main.py
+```
+*Сервис `http://localhost:8000` портында жұмыс істейді.*
+
+### 2. Frontend-ті іске қосу
+```bash
+npm install
+npm run dev
+```
+*Интерфейс `http://localhost:3000` адресінде қолжетімді.*
 
 ---
-*Developed for excellence in transparency and forensic auditing.*
+*Developed for the Department of Economic Investigations (DER) — Ensuring transparency through independent technology.*
