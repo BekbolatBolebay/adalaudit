@@ -334,6 +334,39 @@ export function Dashboard() {
               <ScrollArea className="h-full">
                 <div className="mx-auto max-w-5xl px-4 md:px-6 py-6 pb-24 md:pb-8 flex flex-col gap-6 md:gap-8">
 
+                  {/* Project Hero Section - Shown only when nothing is loaded */}
+                  {!(analysisObject || cachedAnalysis) && !isAnalyzing && (
+                    <div className="flex flex-col gap-8 py-8 animate-in fade-in slide-in-from-top-4 duration-1000">
+                      <div className="space-y-4 text-center">
+                        <Badge variant="outline" className="px-4 py-1 border-primary/20 bg-primary/5 text-primary text-[10px] font-mono tracking-widest uppercase">
+                          Sovereign Forensic Intelligence
+                        </Badge>
+                        <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/60 leading-tight">
+                          {t("hero.title")}
+                        </h1>
+                        <p className="text-muted-foreground text-sm max-w-2xl mx-auto leading-relaxed">
+                          {t("hero.subtitle")}
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+                        {[
+                          { title: t("hero.feat1.title"), desc: t("hero.feat1.desc"), icon: <Bot className="h-5 w-5 text-blue-500" /> },
+                          { title: t("hero.feat2.title"), desc: t("hero.feat2.desc"), icon: <Search className="h-5 w-5 text-orange-500" /> },
+                          { title: t("hero.feat3.title"), desc: t("hero.feat3.desc"), icon: <Share2 className="h-5 w-5 text-green-500" /> },
+                        ].map((feat, i) => (
+                          <div key={i} className="group relative rounded-2xl border border-border bg-card/50 p-6 transition-all hover:bg-secondary/10 hover:border-primary/20">
+                            <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/50 transition-colors group-hover:bg-primary/10">
+                              {feat.icon}
+                            </div>
+                            <h3 className="text-sm font-bold mb-2">{feat.title}</h3>
+                            <p className="text-[11px] text-muted-foreground leading-relaxed">{feat.desc}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Scanner Section */}
                   <ForensicScanner
                     onScanComplete={handleScanComplete}
