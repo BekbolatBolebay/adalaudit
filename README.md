@@ -179,7 +179,10 @@ npm run dev
 ---
 
 ## 👥 Команда
-- **Bekbolat Bolebay** — Lead Fullstack / ML Engineer
+- **Bekbolat Bolebay** — Lead Fullstack / ML Engineer / Capitan / CEO
+- **Nuguman Nurdaulet** — Backend Developer / Author of the idea
+- **Kuntugan Ulan** — Frontend Developer / Вesigner
+- **Kozhabay Kasiet** — Tester / Project Manager
 
 ---
 
