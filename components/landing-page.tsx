@@ -395,7 +395,7 @@ export function LandingPage({ onStart }: LandingPageProps) {
               {t("landing.cta.justice")}
            </motion.div>
            
-           <h3 className="relative text-[6rem] md:text-[10rem] lg:text-[14rem] font-black tracking-tighter uppercase leading-none italic group">
+           <h3 className="relative text-[4rem] md:text-[6rem] lg:text-[9rem] font-black tracking-tighter uppercase leading-none italic group">
               {t("landing.cta.truth")}<br />
               <span className="text-primary not-italic drop-shadow-[0_0_150px_rgba(var(--primary-rgb),0.4)]">{t("landing.cta.enforced")}</span>
            </h3>
