@@ -150,7 +150,7 @@ export function LandingPage({ onStart }: LandingPageProps) {
             </div>
             <div className="flex flex-col">
                <span className="font-black tracking-tighter text-2xl italic leading-none">ADAL AUDIT</span>
-               <span className="text-[8px] font-mono tracking-[0.5em] text-white/30 uppercase mt-1">{t("landing.sov.sub")}</span>
+               <span className="text-[8px] font-mono tracking-[0.5em] text-white/80 uppercase mt-1">{t("landing.sov.sub")}</span>
             </div>
           </motion.div>
           
@@ -239,7 +239,7 @@ export function LandingPage({ onStart }: LandingPageProps) {
 
              <motion.p 
                variants={itemVariants}
-               className="mt-16 text-xl md:text-2xl lg:text-3xl text-white/30 max-w-4xl mx-auto leading-relaxed font-light uppercase tracking-[0.2em] italic"
+               className="mt-16 text-xl md:text-2xl lg:text-3xl text-white/80 max-w-4xl mx-auto leading-relaxed font-light uppercase tracking-[0.2em] italic"
              >
                 « {t("landing.tagline")} »
              </motion.p>
@@ -287,8 +287,8 @@ export function LandingPage({ onStart }: LandingPageProps) {
                         <Badge variant="outline" className="text-[10px] font-mono border-primary/20 text-primary px-4 py-1.5 rounded-full">{item.state}</Badge>
                      </div>
                      <div className="space-y-2">
-                        <span className="text-[11px] font-mono tracking-[0.5em] text-white/30 uppercase font-black">{t(item.label)}</span>
-                        <h4 className="text-2xl font-bold text-white/80">{t(item.desc)}</h4>
+                        <span className="text-[11px] font-mono tracking-[0.5em] text-white/50 uppercase font-black">{t(item.label)}</span>
+                        <h4 className="text-2xl font-bold text-white/90">{t(item.desc)}</h4>
                      </div>
                   </motion.div>
                 ))}
@@ -319,8 +319,8 @@ export function LandingPage({ onStart }: LandingPageProps) {
                 >
                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl opacity-50" />
                    <div className="text-5xl font-black tracking-tighter mb-4 text-white">{stat.val}</div>
-                   <div className="text-[14px] font-mono tracking-[0.5em] text-white/20 font-black">{t(stat.label)}</div>
-                   <p className="text-[10px] font-mono text-primary/40 uppercase mt-4 tracking-widest font-bold underline decoration-primary/20 underline-offset-4">{t(stat.sub)}</p>
+                   <div className="text-[14px] font-mono tracking-[0.5em] text-white/70 font-black">{t(stat.label)}</div>
+                   <p className="text-[10px] font-mono text-primary/70 uppercase mt-4 tracking-widest font-bold underline decoration-primary/20 underline-offset-4">{t(stat.sub)}</p>
                 </motion.div>
               ))}
            </motion.div>
@@ -346,8 +346,8 @@ export function LandingPage({ onStart }: LandingPageProps) {
                        <ShieldCheck className="h-6 w-6 text-primary" />
                        <span className="text-sm font-mono tracking-[0.6em] text-primary font-black">{t("landing.bento.arch")}</span>
                     </div>
-                    <h3 className="text-[5rem] md:text-[7rem] lg:text-[8rem] font-black tracking-tighter leading-[0.8] mix-blend-difference uppercase">{t("landing.sov.title")}</h3>
-                    <p className="text-white/30 text-4xl leading-relaxed max-w-4xl font-light italic tracking-wide">{t("landing.sov.desc")}</p>
+                    <h3 className="text-[5rem] md:text-[7rem] lg:text-[8rem] font-black tracking-tighter leading-[0.8] text-white shadow-2xl uppercase">{t("landing.sov.title")}</h3>
+                    <p className="text-white/60 text-4xl leading-relaxed max-w-4xl font-light italic tracking-wide">{t("landing.sov.desc")}</p>
                  </div>
               </motion.div>
 
@@ -363,8 +363,8 @@ export function LandingPage({ onStart }: LandingPageProps) {
                     <Bot className="h-20 w-20" />
                  </div>
                  <div className="space-y-6">
-                   <h3 className="text-4xl font-black tracking-tighter">{t("landing.logic.title")}</h3>
-                   <p className="text-white/20 text-xl font-light leading-snug">{t("landing.logic.desc")}</p>
+                   <h3 className="text-4xl font-black tracking-tighter text-white">{t("landing.logic.title")}</h3>
+                   <p className="text-white/60 text-xl font-light leading-snug">{t("landing.logic.desc")}</p>
                  </div>
               </motion.div>
 
@@ -379,8 +379,8 @@ export function LandingPage({ onStart }: LandingPageProps) {
                     <Scale className="h-20 w-20" />
                  </div>
                  <div className="space-y-6">
-                   <h3 className="text-4xl font-black tracking-tighter">{t("landing.impact.title")}</h3>
-                   <p className="text-white/20 text-xl font-light leading-snug">{t("landing.impact.desc")}</p>
+                   <h3 className="text-4xl font-black tracking-tighter text-white">{t("landing.impact.title")}</h3>
+                   <p className="text-white/60 text-xl font-light leading-snug">{t("landing.impact.desc")}</p>
                  </div>
               </motion.div>
            </div>
@@ -427,10 +427,10 @@ export function LandingPage({ onStart }: LandingPageProps) {
                  </div>
                  <div className="flex flex-col">
                     <span className="font-black text-6xl md:text-[8rem] lg:text-[10rem] tracking-tighter uppercase italic leading-[0.75] mb-8 bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-white/30">ADAL AUDIT</span>
-                    <span className="text-[18px] font-mono tracking-[1.2em] text-white/20 uppercase font-black">{t("landing.footer.unit")}</span>
+                    <span className="text-[18px] font-mono tracking-[1.2em] text-white/70 uppercase font-black">{t("landing.footer.unit")}</span>
                  </div>
               </div>
-              <p className="text-white/20 text-5xl max-w-7xl leading-tight font-light uppercase tracking-[0.4em] italic decoration-primary/20 underline-offset-[30px] decoration-[2px] underline">
+              <p className="text-white/70 text-5xl max-w-7xl leading-tight font-light uppercase tracking-[0.4em] italic decoration-primary/20 underline-offset-[30px] decoration-[2px] underline">
                  « {t("landing.tagline")} »
               </p>
            </div>
@@ -438,7 +438,7 @@ export function LandingPage({ onStart }: LandingPageProps) {
            <div className="lg:col-span-4 flex justify-end">
               <div className="text-right space-y-20 font-mono">
                  <h4 className="text-[22px] tracking-[1em] text-primary uppercase font-black border-b-4 border-primary pb-8">{t("landing.footer.index")}</h4>
-                 <ul className="space-y-16 text-white/30 text-[18px] uppercase tracking-[0.6em] font-black italic">
+                 <ul className="space-y-16 text-white/80 text-[18px] uppercase tracking-[0.6em] font-black italic">
                     {[
                       { key: "landing.nav.analysis" },
                       { key: "landing.nav.sovereign" },
@@ -458,7 +458,7 @@ export function LandingPage({ onStart }: LandingPageProps) {
            </div>
         </div>
         
-        <div className="flex flex-col md:flex-row justify-between items-center pt-32 border-t border-white/5 gap-20 font-mono text-white/30 text-[14px] uppercase tracking-[1em]">
+        <div className="flex flex-col md:flex-row justify-between items-center pt-32 border-t border-white/5 gap-20 font-mono text-white/80 text-[14px] uppercase tracking-[1em]">
            <span>{t("landing.footer.rights")}</span>
            <div className="flex items-center gap-20 px-20 py-10 border border-white/10 rounded-full bg-white/[0.02]">
               <div className="flex items-center gap-6">
