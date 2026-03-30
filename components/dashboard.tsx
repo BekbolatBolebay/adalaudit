@@ -18,12 +18,14 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { useI18n } from "@/lib/i18n"
 import { History, BookOpen, Settings, Bot, AlertTriangle, X, Share2, Search } from "lucide-react"
 import { NetworkView } from "./network-view"
+import { TenderView } from "@/components/tender-view"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
+import { motion, AnimatePresence } from "framer-motion"
 import type { AnalysisResult, TranslationResult, ProtocolData } from "@/lib/types"
 
-type View = "scanner" | "cases" | "network" | "legal" | "settings"
+type View = "scanner" | "cases" | "network" | "legal" | "settings" | "tender"
 
 export function Dashboard() {
   const { t } = useI18n()
@@ -317,7 +319,7 @@ export function Dashboard() {
 
         {(analysisError || translationError) && (
           <div className="mx-6 mt-4 p-3 rounded-lg border border-destructive/50 bg-destructive/10 text-destructive text-xs">
-            {analysisError?.message || translationError?.message || "Жүйемен байланыс қатесі (Connection Error)"}
+            {analysisError?.message || translationError?.message || t("dash.error.connection")}
           </div>
         )}
 
@@ -397,7 +399,7 @@ export function Dashboard() {
                         <div className="flex items-center gap-2 mb-4">
                           <AlertTriangle className="h-4 w-4 text-foreground/70" />
                           <span className="text-xs font-bold text-foreground uppercase tracking-tight">
-                            {t("lang.toggle") === "RU" ? "ТАБЫЛҒАН БҰЗУШЫЛЫҚТАР" : "НАЙДЕННЫЕ НАРУШЕНИЯ"} ({(analysisObject || cachedAnalysis).violations?.length || 0})
+                            {t("dash.violations.found")} ({(analysisObject || cachedAnalysis).violations?.length || 0})
                           </span>
                         </div>
                         <div className="flex flex-col gap-3">
@@ -448,7 +450,7 @@ export function Dashboard() {
                         className="text-[10px] font-mono tracking-wider text-muted-foreground hover:text-primary transition-colors flex items-center gap-2"
                       >
                         <div className={cn("w-1.5 h-1.5 rounded-full", showComparison ? "bg-primary" : "bg-muted-foreground/30")} />
-                        {showComparison ? (t("lang.toggle") === "RU" ? "САЛЫСТЫРУДЫ ЖАСЫРУ" : "СКРЫТЬ СРАВНЕНИЕ") : (t("lang.toggle") === "RU" ? "ТОЛЫҚ САЛЫСТЫРУДЫ КӨРСЕТУ" : "ПОКАЗАТЬ ПОЛНОЕ СРАВНЕНИЕ")}
+                        {showComparison ? t("dash.comparison.hide") : t("dash.comparison.show")}
                       </Button>
                     </div>
                   )}
@@ -478,6 +480,7 @@ export function Dashboard() {
               <ScrollArea className="h-full">
                 <div className="mx-auto max-w-5xl px-4 md:px-6 py-6 pb-24 md:pb-8 h-full flex flex-col">
                   {activeView === "cases" && <HistoryView onItemClick={handleHistoryLoad} />}
+                  {activeView === "tender" && <TenderView />}
                   {activeView === "network" && <NetworkView />}
                   {activeView === "legal" && <LegalView />}
                   {activeView === "settings" && <SettingsView />}

@@ -109,7 +109,7 @@ export function ForensicScanner({
           setScanStepIndex(3)
         } else {
           setPhase("error")
-          setErrorMessage(locale === "kz" ? "Талдау нәтижесі алынбады. Жүйені немесе файлды тексеріңіз." : "Результаты анализа не получены. Проверьте систему или файл.")
+          setErrorMessage(t("scanner.error.no_result"))
         }
       }
     }
@@ -132,7 +132,7 @@ export function ForensicScanner({
 
       if (!isSupported) {
         setPhase("error")
-        setErrorMessage(locale === "kz" ? "Қолдау көрсетілмейтін файл форматы. PDF немесе DOCX жүктеңіз." : "Неподдерживаемый формат файла. Пожалуйста, используйте PDF или DOCX.")
+        setErrorMessage(t("scanner.error.unsupported"))
         return
       }
 
@@ -220,9 +220,9 @@ export function ForensicScanner({
               )}
             >
               {isScanning
-                ? (locale === "kz" ? "ЗЕРТТЕЛУДЕ" : "ИССЛЕДУЕТСЯ")
+                ? t("scanner.phase.scanning")
                 : phase === "complete"
-                  ? (locale === "kz" ? (isCached ? "КЭШТЕЛГЕН" : "ТАЛДАНДЫ") : (isCached ? "ИЗ КЭША" : "ПРОАНАЛИЗИРОВАНО"))
+                  ? (isCached ? t("scanner.phase.cached") : t("scanner.phase.analyzed"))
                   : "ERROR"}
             </Badge>
           )}
@@ -234,7 +234,7 @@ export function ForensicScanner({
               className="h-7 gap-1.5 px-2 text-xs text-muted-foreground hover:text-foreground"
             >
               <RotateCcw className="h-3.5 w-3.5" />
-              {locale === "kz" ? "Қайта" : "Заново"}
+              {t("scanner.button.reset")}
             </Button>
           )}
         </div>
@@ -350,14 +350,12 @@ export function ForensicScanner({
         <div className="flex flex-col items-center gap-4 rounded-xl border border-destructive/30 bg-destructive/[0.03] p-8">
           <XCircle className="h-10 w-10 text-destructive" />
           <div className="text-center">
-            <p className="text-sm font-semibold text-destructive">
-              {locale === "kz" ? "Талдау қатесі" : "Ошибка анализа"}
-            </p>
+              {t("scanner.error.title")}
             <p className="mt-1 text-xs text-muted-foreground max-w-md">{errorMessage}</p>
           </div>
           <Button variant="outline" size="sm" onClick={handleReset} className="gap-2">
             <RotateCcw className="h-3.5 w-3.5" />
-            {locale === "kz" ? "Қайталау" : "Повторить"}
+            {t("scanner.button.retry")}
           </Button>
         </div>
       )}
@@ -394,7 +392,7 @@ export function ForensicScanner({
                 ) : (
                   <TrendingUp className="h-4 w-4" />
                 )}
-                {locale === "kz" ? "Нарықтық бағаны тексеру" : "Проверить рыночные цены"}
+                {t("scanner.button.market_check")}
               </Button>
             </div>
           )}

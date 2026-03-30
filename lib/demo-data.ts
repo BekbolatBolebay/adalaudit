@@ -46,12 +46,131 @@ const mockAnalysisResults = {
     }
 };
 
+export const getTenderAuditResults = (url: string): AnalysisResult => {
+    const lowerUrl = url.toLowerCase();
+    const isNotebook = lowerUrl.includes("notebook") || lowerUrl.includes("laptop") || lowerUrl.includes("компьютер");
+    const isFuel = lowerUrl.includes("fuel") || lowerUrl.includes("бензин") || lowerUrl.includes("топливо");
+    const isSecurity = lowerUrl.includes("security") || lowerUrl.includes("күзет") || lowerUrl.includes("охрана");
+    const isConsulting = lowerUrl.includes("consulting") || lowerUrl.includes("consult") || lowerUrl.includes("консалтинг");
+    
+    if (isNotebook) {
+        return {
+            risk_score: 92,
+            violations: [
+                {
+                    code: "KZ-GP-21",
+                    text_ru: "Ограничение конкуренции: отсутствие возможности поставки эквивалента",
+                    text_kz: "Бәсекелестікті шектеу: баламаны (эквивалентті) жеткізу мүмкіндігінің болмауы",
+                    severity: "critical",
+                    original_fragment: "Процессор только Intel Core i9-13980HX",
+                    explanation: "Техникалық ерекшелікте нақты модель көрсетілген, бұл 'Мемлекеттік сатып алу туралы' ҚР Заңының 21-бабын бұзады."
+                },
+                {
+                    code: "KZ-CC-190",
+                    text_ru: "Признаки манипуляции поиском (Unicode-субституция)",
+                    text_kz: "Іздеу манипуляциясының белгілері (Unicode-алмастыру)",
+                    severity: "critical",
+                    original_fragment: "Nоутбук для oфиса",
+                    explanation: "Символдарды латын әріптерімен алмастыру арқылы лотты автоматты мониторингтен жасыру әрекеті анықталды."
+                }
+            ],
+            summary_ru: "Критический риск: Выявлено искусственное ограничение круга поставщиков и манипуляция поисковыми запросами. Бюджет завышен на 35%.",
+            summary_kz: "Сыни тәуекел: Өнім берушілер тобын жасанды түрде шектеу және іздеу сұраныстарын манипуляциялау анықталды. Бюджет 35%-ға асырылған.",
+            detected_tender_price: 1250000,
+            primary_product_name: "Ноутбук бизнес-класса",
+            original_text: "Техническая спецификация на закупку Nоутбуков для oфиса. Процессор только Intel Core i9-13980HX без возможности эквивалента."
+        };
+    }
+    
+    if (isFuel) {
+        return {
+            risk_score: 75,
+            violations: [
+                {
+                    code: "KZ-GP-43",
+                    text_ru: "Аномально высокая цена за литр (АИ-95)",
+                    text_kz: "Бір литр үшін аномальды жоғары баға (АИ-95)",
+                    severity: "high",
+                    original_fragment: "Цена за литр: 380 KZT",
+                    explanation: "Ағымдағы нарықтық орташа баға 255-270 теңге аралығында. Асыра көрсету 40%-ды құрайды."
+                }
+            ],
+            summary_ru: "Риск финансовых потерь. Заявленная стоимость ГСМ превышает предельные розничные цены.",
+            summary_kz: "Қаржылық шығындар тәуекелі. ЖЖМ мәлімделген құны шекті бөлшек сауда бағаларынан асып түседі.",
+            detected_tender_price: 45000000,
+            primary_product_name: "ЖЖМ (Бензин)",
+            original_text: "Государственная закупка топлива АИ-95. Объем 100 000 литров. Цена за литр: 380 KZT."
+        };
+    }
+
+    if (isSecurity) {
+        return {
+            risk_score: 58,
+            violations: [
+                {
+                    code: "KZ-REQS-04",
+                    text_ru: "Избыточные квалификационные требования (опыт > 20 лет)",
+                    text_kz: "Артық біліктілік талаптары (тәжірибе > 20 жыл)",
+                    severity: "high",
+                    original_fragment: "Опыт работы руководителя охраны не менее 20 лет",
+                    explanation: "Мұндай жоғары талап белгілі бір компанияға ғана сәйкес келуі мүмкін, бұл бәсекелестікті шектейді."
+                }
+            ],
+            summary_ru: "Обнаружены признаки ограничения доступа к тендеру через завышенные требования к персоналу.",
+            summary_kz: "Персоналға қойылатын талаптарды асыра көрсету арқылы тендерге қолжетімділікті шектеу белгілері анықталды.",
+            detected_tender_price: 15800000,
+            primary_product_name: "Күзет қызметтері (Security)",
+            original_text: "Оказание услуг охранной службы. Опыт работы руководителя охраны не менее 20 лет."
+        };
+    }
+
+    if (isConsulting) {
+        return {
+            risk_score: 82,
+            violations: [
+                {
+                    code: "KZ-VOID-001",
+                    text_ru: "Размытые требования к результату (коррупционный риск)",
+                    text_kz: "Нәтижеге қойылатын бұлыңғыр талаптар (сыбайлас жемқорлық тәуекелі)",
+                    severity: "critical",
+                    original_fragment: "Проведенние глубокого анализа текущей ситуации и предоставление общих рекомендаций",
+                    explanation: "Нақты KPI немесе өлшенетін нәтиже көрсетілмеген. Бұл 'бос' келісімшарттардың белгісі болуы мүмкін."
+                }
+            ],
+            summary_ru: "Высокий риск неэффективного использования бюджетных средств. Отсутствие конкретных измеримых результатов.",
+            summary_kz: "Бюджет қаражатын тиімді пайдаланбау қаупі жоғары. Нақты өлшенетін нәтижелердің жоқтығы байқалады.",
+            detected_tender_price: 25000000,
+            primary_product_name: "Консалтингтік қызметтер",
+            original_text: "Услуги консалтинга по стратегическому развитию. Проведенние глубокого анализа текущей ситуации и предоставление общих рекомендаций."
+        };
+    }
+
+    return {
+        risk_score: 44,
+        violations: [
+            {
+                code: "KZ-AUDIT-GEN",
+                text_ru: "Нетипично короткий срок приема заявок (2 дня)",
+                text_kz: "Өтінімдерді қабылдаудың қалыптан тыс қысқа мерзімі (2 күн)",
+                severity: "high",
+                original_fragment: "Срок поставки и приема: 48 часов",
+                explanation: "Мұндай қысқа мерзім белгілі бір өнім берушіге артықшылық беру белгісі болуы мүмкен."
+            }
+        ],
+        summary_ru: "Обнаружены признаки потенциального сговора. Сроки тендера не соответствуют сложности работ.",
+        summary_kz: "Ықтимал сөз байласу белгілері анықталды. Тендер мерзімдері жұмыстың күрделілігіне сәйкес келмейді.",
+        detected_tender_price: 8900000,
+        primary_product_name: "Мемлекеттік сатып алу лоты",
+        original_text: "Закупка услуг. Срок поставки и приема: 48 часов с момента публикации."
+    };
+};
+
 export const getMockAnalysis = (fileName: string): AnalysisResult => {
     const lowerName = fileName.toLowerCase();
     if (lowerName.includes("clean") || lowerName.includes("test")) {
-        return mockAnalysisResults.clean;
+        return mockAnalysisResults.clean as AnalysisResult;
     }
-    return mockAnalysisResults.danger;
+    return mockAnalysisResults.danger as AnalysisResult;
 };
 
 export const getMockTranslation = (fileName: string): TranslationResult => ({
@@ -120,6 +239,7 @@ export const mockLegalLibrary = [
         link: "https://adilet.zan.kz/rus/docs/K080000095_"
     }
 ]
+
 export const mockNetworkResults = {
     danger: {
         riskScore: 85,
@@ -146,7 +266,6 @@ export const mockNetworkResults = {
 };
 
 export const getNetworkMock = (bin: string) => {
-    // Use 111111111111 for Clean, anything else for Danger for the demo
     if (bin === "111111111111") return mockNetworkResults.clean;
     return mockNetworkResults.danger;
 };

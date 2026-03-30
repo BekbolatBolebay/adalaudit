@@ -106,7 +106,7 @@ export function ForensicComparison({
           variant="outline"
           className="w-fit border-primary/20 text-primary bg-primary/5 text-[9px] md:text-[10px] font-mono tracking-wider"
         >
-          AI LEGAL TRANSLATION
+          {t("forensic.badge")}
         </Badge>
       </div>
 
@@ -123,7 +123,7 @@ export function ForensicComparison({
             {translationResult && (
               <div className="flex items-center gap-1 ml-auto">
                 <Badge className="bg-red-glow/10 text-red-glow border border-red-glow/30 text-[8px] md:text-[9px] font-mono whitespace-nowrap">
-                  {(translationResult.violation_count || 0)} VIOLATIONS
+                  {(translationResult.violation_count || 0)} {t("forensic.violations.count")}
                 </Badge>
                 <div className="flex items-center">
                   <Button
@@ -152,7 +152,7 @@ export function ForensicComparison({
           </div>
           <ScrollArea className="h-[500px]">
             {isLoading && !translationResult?.original_text ? (
-              <LoadingState text="ADAL AI EXPERT" subtitle="Analyzing original text..." />
+              <LoadingState text={t("forensic.expert.name")} subtitle={t("forensic.original.loading")} />
             ) : translationResult?.original_text ? (
               <div className="p-4 font-mono text-xs leading-relaxed whitespace-pre-wrap">
                 {violationSpans.map(
@@ -190,7 +190,7 @@ export function ForensicComparison({
             ) : (
               <LoadingState
                 text={t("forensic.original")}
-                subtitle="Waiting for data..."
+                subtitle={t("forensic.waiting")}
               />
             )}
           </ScrollArea>
@@ -208,7 +208,7 @@ export function ForensicComparison({
             {translationResult && (
               <div className="flex items-center gap-1 ml-auto">
                 <Badge className="bg-primary/5 text-primary border border-primary/20 text-[8px] md:text-[9px] font-mono whitespace-nowrap">
-                  AI LEGAL KZ
+                  {t("forensic.translated.badge")}
                 </Badge>
                 <div className="flex items-center">
                   <Button
@@ -239,7 +239,7 @@ export function ForensicComparison({
             {isLoading && !translationResult?.translated_kz ? (
               <LoadingState
                 text="ADAL AI EXPERT"
-                subtitle="Generating legal translation..."
+                subtitle={t("forensic.translated.loading")}
               />
             ) : translationResult?.translated_kz ? (
               <div className="p-4 font-mono text-xs leading-relaxed whitespace-pre-wrap text-foreground">
@@ -266,7 +266,7 @@ export function ForensicComparison({
             ) : (
               <LoadingState
                 text={t("forensic.translation")}
-                subtitle="Waiting for data..."
+                subtitle={t("forensic.waiting")}
               />
             )}
           </ScrollArea>

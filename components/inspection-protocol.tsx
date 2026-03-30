@@ -51,7 +51,7 @@ ${legalRef}
 ${t("protocol.investigator")}: ${protocolData.investigator}
 
 ${"_".repeat(50)}
-${isKz ? "Қолы" : "Подпись"}: ________________    ${isKz ? "Күні" : "Дата"}: ________________`
+${t("protocol.signature")}: ________________    ${t("protocol.date")}: ________________`
 
     const blob = new Blob([content], { type: "text/plain;charset=utf-8" })
     const url = URL.createObjectURL(blob)
@@ -77,9 +77,7 @@ ${isKz ? "Қолы" : "Подпись"}: ________________    ${isKz ? "Күні"
               ADAL AI EXPERT
             </p>
             <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">
-              {locale === "kz"
-                ? "Протокол жасалуда"
-                : "Формирование протокола"}
+              {t("protocol.loading")}
             </p>
           </div>
         </div>
@@ -116,7 +114,7 @@ ${isKz ? "Қолы" : "Подпись"}: ________________    ${isKz ? "Күні"
         <div className="flex items-center gap-2 border-b border-border px-4 py-2.5 bg-secondary/30">
           <FileText className="h-3.5 w-3.5 text-primary" />
           <span className="text-[10px] font-mono text-muted-foreground tracking-wider uppercase">
-            {isKz ? "Ресми құжат жобасы" : "Проект официального документа"}
+            {t("protocol.project")}
           </span>
           <Badge className="ml-auto bg-primary/10 text-primary border border-primary/30 text-[9px] font-mono">
             AI GENERATED
@@ -191,7 +189,7 @@ ${isKz ? "Қолы" : "Подпись"}: ________________    ${isKz ? "Күні"
             </div>
             <div className="flex flex-col items-end gap-0.5">
               <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                {isKz ? "Қолы" : "Подпись"}
+                {t("protocol.signature")}
               </span>
               <span className="text-xs text-muted-foreground/50 border-b border-dashed border-muted-foreground/30 w-20 md:w-28" />
             </div>

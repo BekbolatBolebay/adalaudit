@@ -23,6 +23,12 @@ export type AnalysisResult = {
   summary_ru: string
   summary_kz: string
   original_text: string
+  primary_product_name?: string
+  detected_tender_price?: number
+  url?: string
+  tender_id?: string
+  title?: string
+  price?: number
 }
 
 export type HighlightSpan = {

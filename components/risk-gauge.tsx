@@ -168,7 +168,7 @@ export function RiskGauge({ value, animated }: { value: number; animated?: boole
       <div className="mt-4 px-4 py-1.5 rounded-full bg-secondary/20 border border-secondary/30 flex items-center gap-2">
         <div className="h-2 w-2 rounded-full animate-pulse" style={{ backgroundColor: color }} />
         <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em] pt-0.5">
-          {label} ANALYSIS
+          {label} {t("scanner.analysis.suffix")}
         </span>
       </div>
     </div>

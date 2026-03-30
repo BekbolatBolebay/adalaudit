@@ -1,11 +1,12 @@
 "use client"
 
-import { ScanSearch, History, BookOpen, Settings, Share2 } from "lucide-react"
+import { ScanSearch, History, BookOpen, Settings, Share2, Link2 } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 
 const navItems = [
     { key: "nav.scanner", icon: ScanSearch, id: "scanner" },
+    { key: "nav.tender_audit", icon: Link2, id: "tender" },
     { key: "nav.cases", icon: History, id: "cases" },
     { key: "nav.network", icon: Share2, id: "network" },
     { key: "nav.legal", icon: BookOpen, id: "legal" },
