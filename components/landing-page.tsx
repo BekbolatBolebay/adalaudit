@@ -91,7 +91,7 @@ export function LandingPage({ onStart }: LandingPageProps) {
   if (!mounted) return null
 
   return (
-    <div ref={containerRef} className="relative min-h-[200vh] w-full bg-[#010204] text-white selection:bg-primary/40 selection:text-black overflow-x-hidden font-sans antialiased">
+    <div ref={containerRef} className="relative min-h-[200vh] w-full bg-[#010204] text-white selection:bg-primary/40 selection:text-white overflow-x-hidden font-sans antialiased">
       
       {/* IMMERSIVE INTERACTIVE GLOW */}
       <div 
@@ -146,7 +146,7 @@ export function LandingPage({ onStart }: LandingPageProps) {
             className="flex items-center gap-6 group cursor-pointer"
           >
             <div className="bg-primary p-3 rounded-xl shadow-[0_0_30px_rgba(var(--primary-rgb),0.5)]">
-               <ShieldCheck className="h-6 w-6 text-black" />
+               <ShieldCheck className="h-6 w-6 text-white" />
             </div>
             <div className="flex flex-col">
                <span className="font-black tracking-tighter text-2xl italic leading-none">ADAL AUDIT</span>
@@ -180,7 +180,7 @@ export function LandingPage({ onStart }: LandingPageProps) {
             >
               {locale === "kz" ? t("landing.lang.switch") : t("landing.lang.switch_ru")}
             </motion.button>
-            <Button onClick={onStart} className="rounded-full bg-primary text-black hover:bg-white font-black text-[11px] tracking-widest px-10 h-12 shadow-2xl">
+            <Button onClick={onStart} className="rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white font-black text-[11px] tracking-widest px-10 h-12 backdrop-blur-3xl shadow-2xl">
                {t("landing.access_portal")}
             </Button>
           </div>
@@ -254,9 +254,9 @@ export function LandingPage({ onStart }: LandingPageProps) {
                onClick={onStart}
              >
                 <div className="absolute -inset-24 bg-primary/30 rounded-full blur-[130px] opacity-100 group-hover:bg-primary/50 transition-all duration-1000 animate-pulse" />
-                <button className="relative h-36 px-48 rounded-[60px] bg-white text-black hover:bg-primary hover:text-white transition-all duration-700 text-6xl font-black shadow-[0_50px_150px_rgba(255,255,255,0.35)] flex items-center gap-10 group-active:scale-95 ring-1 ring-black/5 overflow-hidden">
+                <button className="relative h-36 px-48 rounded-[60px] bg-white/5 border border-white/10 text-white hover:bg-primary/20 hover:border-primary/40 transition-all duration-700 text-6xl font-black shadow-[0_50px_150px_rgba(var(--primary-rgb),0.25)] flex items-center gap-10 group-active:scale-95 overflow-hidden backdrop-blur-3xl">
                    <span className="relative z-10">{t("landing.cta")}</span>
-                   <div className="relative z-10 bg-black/5 p-4 rounded-full group-hover:bg-white group-hover:text-black transition-all">
+                   <div className="relative z-10 bg-white/10 p-4 rounded-full group-hover:bg-primary group-hover:text-white transition-all">
                       <ChevronRight className="h-14 w-14 stroke-[5px]" />
                    </div>
                    <motion.div 
@@ -408,7 +408,7 @@ export function LandingPage({ onStart }: LandingPageProps) {
               <div className="absolute -inset-40 bg-primary/40 rounded-full blur-[180px] opacity-100 group-hover:bg-primary/70 transition-all duration-1000 animate-pulse" />
               <Button 
                 onClick={onStart} 
-                className="relative h-48 px-56 rounded-full bg-primary text-black hover:bg-white text-7xl font-black transition-all shadow-[0_60px_200px_rgba(var(--primary-rgb),0.6)] group-hover:shadow-[0_80px_250px_rgba(var(--primary-rgb),0.8)] flex items-center gap-16"
+                className="relative h-48 px-56 rounded-full bg-white/5 border border-white/10 text-white hover:bg-primary/20 hover:border-primary/40 text-7xl font-black transition-all shadow-[0_60px_200px_rgba(var(--primary-rgb),0.3)] group-hover:shadow-[0_80px_250px_rgba(var(--primary-rgb),0.5)] flex items-center gap-16 backdrop-blur-3xl"
               >
                 {t("hero.start")}
                 <ChevronRight className="h-24 w-24 stroke-[8px] group-hover:translate-x-12 transition-transform duration-1000" />
