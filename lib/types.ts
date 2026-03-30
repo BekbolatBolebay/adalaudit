@@ -29,6 +29,12 @@ export type AnalysisResult = {
   tender_id?: string
   title?: string
   price?: number
+  metadata?: {
+    location: string
+    payment: string
+    requirements: string
+    forensic_logs: string[]
+  }
 }
 
 export type HighlightSpan = {

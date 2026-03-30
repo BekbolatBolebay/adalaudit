@@ -60,6 +60,9 @@ const translations: Translations = {
   "status.ready": { kz: "Талдауға дайын", ru: "Готов к анализу" },
   "status.scanning": { kz: "Сканерлеу...", ru: "Сканирование..." },
   "status.complete": { kz: "Талдау аяқталды", ru: "Анализ завершён" },
+  "scanner.expert_console": { kz: "Expert Forensic Console (Logic)", ru: "Экспертная форензик-консоль" },
+  "scanner.meta.location": { kz: "Жеткізу орны", ru: "Место поставки" },
+  "scanner.meta.payment": { kz: "Төлем шарттары", ru: "Условия оплаты" },
 
   // Notifications
   "notif.title": { kz: "Хабарландырулар", ru: "Уведомления" },

@@ -10,6 +10,8 @@ import {
   RotateCcw,
   XCircle,
   TrendingUp,
+  Terminal,
+  Search,
 } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
@@ -379,6 +381,47 @@ export function ForensicScanner({
               <span className="text-primary uppercase tracking-tighter">{t("status.complete")}</span>
             </div>
           </div>
+
+
+          {/* Expert Console for 100-point Explainability */}
+          {analysisResult.metadata && (
+            <div className="mt-6 flex flex-col gap-3">
+              <div className="flex items-center gap-2 px-2">
+                <Terminal className="h-3.5 w-3.5 text-primary" />
+                <span className="text-[10px] font-bold font-mono tracking-widest text-primary uppercase">{t("scanner.expert_console")}</span>
+              </div>
+              <div className="rounded-xl border border-primary/20 bg-black/40 p-4 font-mono text-[10px] space-y-2 max-h-48 overflow-y-auto scrollbar-hide shadow-inner">
+                {analysisResult.metadata.forensic_logs.map((log, i) => (
+                  <div key={i} className="flex gap-3 animate-in fade-in slide-in-from-left-2 duration-300" style={{ animationDelay: `${i * 100}ms` }}>
+                    <span className="text-primary/40 shrink-0">[{new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}]</span>
+                    <span className={cn(
+                       log.includes("🚩") ? "text-red-400 font-bold" : 
+                       log.includes("✅") ? "text-green-400" : 
+                       "text-primary/70"
+                    )}>
+                      {log}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Metadata Indicators */}
+              <div className="grid grid-cols-2 gap-3 px-1">
+                {[
+                  { icon: Search, label: "scanner.meta.location", value: analysisResult.metadata.location },
+                  { icon: FileText, label: "scanner.meta.payment", value: analysisResult.metadata.payment }
+                ].map((item, i) => (
+                  <div key={i} className="flex flex-col gap-1 p-2 rounded-lg border border-white/5 bg-white/[0.02]">
+                    <div className="flex items-center gap-1.5 opacity-40">
+                      <item.icon className="h-3 w-3" />
+                      <span className="text-[9px] uppercase font-bold tracking-tighter">{t(item.label)}</span>
+                    </div>
+                    <span className="text-[10px] font-medium truncate text-white/60">{item.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {phase === "complete" && !hasMarketData && (
             <div className="mt-2 px-2 w-full flex justify-center">
