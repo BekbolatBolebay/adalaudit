@@ -62,17 +62,24 @@ class ChatRequest(BaseModel):
 HIDDEN_TRAPS_DETAILED = {
     "Brand Restriction (Брендке байлану)": [
         r"только\s+оригинал", r"тек\s+түпнұсқа", r"не\s+допускается\s+аналог", 
-        r"аналогтар\s+қабылданбайды", r"согласно\s+каталогу", r"нақты\s+марка"
+        r"аналогтар\s+қабылданбайды", r"согласно\s+каталогу", r"нақты\s+марка",
+        r"модель\s+[A-Z\d\-_]{3,}", r"партномер", r"part\s*number"
     ],
     "Impossible Deadlines (Мүмкін емес мерзім)": [
         r"в\s+течение\s+1\s+дня", r"1\s+күн\s+ішінде", r"срок\s+24\s+часа", 
-        r"поставка\s+немедленно", r"шұғыл\s+жеткізу"
+        r"поставка\s+немедленно", r"шұғыл\s+жеткізу", r"срок\s+до\s+3\s+дней"
     ],
     "Specific Location (Географиялық шектеу)": [
-        r"наличие\s+склада\s+в\s+городе", r"қойманың\s+болуы", r"тек\s+жергілікті"
+        r"наличие\s+склада\s+в\s+городе", r"қойманың\s+болуы", r"тек\s+жергілікті",
+        r"база\s+в\s+радиусе", r"база\s+в\s+области"
     ],
     "Restrictive Certification (Шектеуші сертификаттар)": [
-        r"наличие\s+сертификата\s+ISO\s+9999", r"арнайы\s+рұқсат", r"эксклюзивті\s+дилер"
+        r"наличие\s+сертификата\s+ISO\s+9999", r"арнайы\s+рұқсат", r"эксклюзивті\s+дилер",
+        r"авторизационное\s+письмо", r"письмо\s+от\s+производителя", r"сертификат\s+СТ-KZ"
+    ],
+    "Experience Wall (Тәжірибелік кедергі)": [
+        r"опыт\s+работы\s+не\s+менее\s+\d{2}", r"жұмыс\s+тәжірибесі\s+\d{2}",
+        r"реализовано\s+проектов\s+более\s+100"
     ]
 }
 
@@ -164,17 +171,24 @@ async def analyze(
     prod_match = re.search(r'(?:[тт]овар|[лл]от|[пп]редмет)[:\s]+([^.\n,]{3,60})', extractedText, re.IGNORECASE)
     if prod_match: product_name = prod_match.group(1).strip()
 
-    risk_score = 15.0 + (len(hidden_traps) * 20.0)
-    violations = []
+    # Detect Unicode Manipulation
+    manipulations = detect_unicode_manipulation(extractedText)
+    if manipulations:
+        hidden_traps.append("Unicode Manipulation (Символдарды айлалау)")
+
+    # Risk Score calculation
+    risk_score = 12.0 + (len(hidden_traps) * 18.0)
+    risk_score = min(98.0, risk_score)
     
-    if len(hidden_traps) > 0:
+    violations = []
+    for trap in hidden_traps:
         violations.append(Violation(
-            code="TRAP-001",
-            text_ru=f"Обнаружен технический барьер: {', '.join(hidden_traps)}",
-            text_kz=f"Техникалық кедергі анықталды: {', '.join(hidden_traps)}",
-            severity="high",
+            code="TRAP-" + trap.split(' ')[0],
+            text_ru=f"Выявлен форензик-триггер: {trap}",
+            text_kz=f"Форензик-триггер анықталды: {trap}",
+            severity="high" if "Brand" in trap or "Deadline" in trap else "medium",
             original_fragment="...",
-            explanation="Спецификация содержит условия, ограничивающие конкуренцию."
+            explanation=f"Данное условие ограничивает конкуренцию согласно ст. 4 Закона о ГЗ РК."
         ))
 
     sector = "Прочее"
@@ -183,8 +197,8 @@ async def analyze(
             sector = sec
             break
 
-    winning_prob = float(85.0 - (risk_score * 0.8))
-    winning_prob = max(5.0, min(95.0, winning_prob))
+    winning_prob = float(92.0 - (risk_score * 0.95))
+    winning_prob = max(4.0, min(92.0, winning_prob))
 
     return AnalysisResult(
         risk_score=min(float(risk_score), 100.0),
