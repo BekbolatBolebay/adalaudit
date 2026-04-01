@@ -32,6 +32,7 @@ class AnalysisResult(BaseModel):
     winning_probability: Optional[float] = 0.0
     hidden_traps: List[str] = []
     submission_guide: List[str] = []
+    financial_guide: Optional[dict] = None
 
 class TranslationRequest(BaseModel):
     fileData: Optional[str] = None
@@ -162,7 +163,7 @@ async def analyze(
 
     # Price & Product Detection (Minimal)
     detected_price = 0.0
-    price_match = re.search(r'(\d[\d\s,]{4,12})(?:\s+тенге|\s+тг|KZT)', extractedText, re.IGNORECASE)
+    price_match = re.search(r'([\d\s,]+)\s*(?:тенге|тг|KZT)', extractedText, re.IGNORECASE)
     if price_match:
         try: detected_price = float(price_match.group(1).replace(' ', '').replace(',', '.'))
         except: pass
@@ -200,6 +201,23 @@ async def analyze(
     winning_prob = float(92.0 - (risk_score * 0.95))
     winning_prob = max(4.0, min(92.0, winning_prob))
 
+    # FINANCIAL GUIDE & STRATEGY
+    guarantee = detected_price * 0.03 # 3% Bank Guarantee
+    recommended_bid = detected_price * (0.985 if risk_score < 30 else 0.995) if detected_price > 0 else 0
+    
+    sub_guide = [
+        "Құжаттарды (Техспец) мұқият тексеріңіз." if winning_prob > 50 else "Бұл лот өте қауіпті, аулақ болыңыз.",
+        "Банктік кепілдікті алдын-ала дайындаңыз.",
+        "Сұрақтар болса, портал арқылы түсініктеме сұраңыз."
+    ]
+
+    financial_guide = {
+        "guarantee_3_percent": guarantee,
+        "recommended_bid": recommended_bid,
+        "min_capital_required": guarantee * 1.5,
+        "strategy": "Төмен бағамен ұсыну (Демпингсіз)" if risk_score < 40 else "Қауіпсіздік үшін максималды бағаға жақын ұсыну"
+    }
+
     return AnalysisResult(
         risk_score=min(float(risk_score), 100.0),
         violations=violations,
@@ -210,7 +228,8 @@ async def analyze(
         sector=sector,
         winning_probability=float(int(winning_prob * 10) / 10),
         hidden_traps=hidden_traps,
-        submission_guide=["Изучите ТЭЗ", "Проверьте лицензии", "Подайте заявку вовремя"]
+        submission_guide=sub_guide,
+        financial_guide=financial_guide
     )
 
 if __name__ == "__main__":

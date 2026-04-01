@@ -29,6 +29,12 @@ export type AnalysisResult = {
   winning_probability?: number
   hidden_traps?: string[]
   submission_guide?: string[]
+  financial_guide?: {
+    guarantee_3_percent: number
+    recommended_bid: number
+    min_capital_required: number
+    strategy: string
+  }
   url?: string
   tender_id?: string
   title?: string

@@ -272,6 +272,53 @@ export function TenderView() {
                    </div>
                 </div>
 
+                {/* NEW: Financial Guide & Bidding Strategy */}
+                {result.financial_guide && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                     <div className="p-8 rounded-3xl border border-blue-500/20 bg-blue-500/5 space-y-6">
+                        <div className="flex items-center gap-3">
+                           <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+                           <span className="text-[10px] font-mono tracking-[0.4em] uppercase font-black text-blue-400/60">Financial Guide (Қаржылық нұсқаулық)</span>
+                        </div>
+                        <div className="space-y-4">
+                           <div className="flex items-center justify-between">
+                              <span className="text-sm text-muted-foreground">3% Кепілдік (Guarantee):</span>
+                              <span className="text-xl font-bold text-white">{result.financial_guide.guarantee_3_percent?.toLocaleString()} ₸</span>
+                           </div>
+                           <div className="flex items-center justify-between">
+                              <span className="text-sm text-muted-foreground">Қажетті капитал (Min Capital):</span>
+                              <span className="text-sm font-mono text-blue-400">{result.financial_guide.min_capital_required?.toLocaleString()} ₸</span>
+                           </div>
+                           <div className="h-px bg-white/5" />
+                           <div className="flex items-center justify-between text-primary">
+                              <span className="text-sm font-bold uppercase tracking-wider">Ұсынылатын баға (Rec. Bid):</span>
+                              <span className="text-2xl font-black">{result.financial_guide.recommended_bid?.toLocaleString()} ₸</span>
+                           </div>
+                        </div>
+                     </div>
+
+                     <div className="p-8 rounded-3xl border border-primary/20 bg-primary/5 space-y-6">
+                        <div className="flex items-center gap-3">
+                           <div className="h-2 w-2 rounded-full bg-primary" />
+                           <span className="text-[10px] font-mono tracking-[0.4em] uppercase font-black text-primary/60">Submission Strategy (Стратегия)</span>
+                        </div>
+                        <div className="space-y-4">
+                           <div className="p-4 rounded-xl bg-black/20 border border-white/5 text-xs text-white/80 leading-relaxed">
+                              <strong>Стратегия:</strong> {result.financial_guide.strategy}
+                           </div>
+                           <div className="space-y-2">
+                             {result.submission_guide?.map((step: string, i: number) => (
+                               <div key={i} className="text-[11px] flex items-center gap-3 text-muted-foreground">
+                                 <div className="h-1 w-1 rounded-full bg-primary shrink-0" />
+                                 {step}
+                               </div>
+                             ))}
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+                )}
+
                 {/* NEW: Hidden Traps in TenderView */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                    <div className="p-8 rounded-3xl border border-destructive/20 bg-destructive/5 space-y-4">
@@ -311,17 +358,6 @@ export function TenderView() {
                         </div>
                       </div>
                    </div>
-                </div>
-
-                {/* Expert Recommendation Section */}
-                <div className="p-8 rounded-3xl border border-primary/20 bg-primary/5 space-y-4">
-                   <div className="flex items-center gap-2 text-primary">
-                      <ShieldCheck className="h-5 w-5" />
-                      <h5 className="font-bold uppercase tracking-wider">{t("tender.recommendation.title")}</h5>
-                   </div>
-                   <p className="text-sm text-muted-foreground leading-relaxed">
-                      {t("tender.recommendation.desc")}
-                   </p>
                 </div>
 
                 <div className="space-y-4">
