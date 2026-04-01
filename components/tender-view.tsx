@@ -212,6 +212,47 @@ export function TenderView() {
                    </div>
                 </div>
 
+                {/* NEW: Hidden Traps in TenderView */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                   <div className="p-8 rounded-3xl border border-destructive/20 bg-destructive/5 space-y-4">
+                      <div className="flex items-center gap-3">
+                         <div className="h-2 w-2 rounded-full bg-destructive" />
+                         <span className="text-[10px] font-mono tracking-[0.4em] uppercase font-black text-destructive/60">{t("scanner.result.traps")}</span>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        {result.hidden_traps && result.hidden_traps.length > 0 ? (
+                          result.hidden_traps.map((trap: string, i: number) => (
+                            <div key={i} className="text-xs flex items-center gap-2 text-foreground/80 bg-destructive/10 border border-destructive/20 px-3 py-2 rounded-xl">
+                              <AlertCircle className="h-3 w-3 text-destructive shrink-0" />
+                              {trap}
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-xs text-muted-foreground italic">{locale === 'kz' ? 'Жасырын тұзақтар анықталмады' : 'Скрытых ловушек не обнаружено'}</p>
+                        )}
+                      </div>
+                   </div>
+
+                   <div className="p-8 rounded-3xl border border-primary/20 bg-primary/5 space-y-4">
+                      <div className="flex items-center gap-3">
+                         <div className="h-2 w-2 rounded-full bg-primary" />
+                         <span className="text-[10px] font-mono tracking-[0.4em] uppercase font-black text-primary/60">Winning Probability</span>
+                      </div>
+                      <div className="space-y-4">
+                        <div className="flex items-end justify-between">
+                          <span className="text-3xl font-black text-primary">{result.winning_probability || 0}%</span>
+                          <span className="text-[10px] font-mono text-muted-foreground uppercase">{t("scanner.result.winning_prob")}</span>
+                        </div>
+                        <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                           <div 
+                             className="h-full bg-primary transition-all duration-1000"
+                             style={{ width: `${result.winning_probability || 0}%` }}
+                           />
+                        </div>
+                      </div>
+                   </div>
+                </div>
+
                 {/* Expert Recommendation Section */}
                 <div className="p-8 rounded-3xl border border-primary/20 bg-primary/5 space-y-4">
                    <div className="flex items-center gap-2 text-primary">

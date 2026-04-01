@@ -21,25 +21,13 @@ export async function POST(req: Request) {
 
     const html = await response.text();
 
-    // 2. Extract Data using Regex (Simulating robust DOM parsing)
-    const breadcrumbMatch = html.match(/<li class="active">(.*?)<\/li>/i);
-    const tableTitleMatch = html.match(/<td>(Услуги|Товары|Работы).*?<\/td>/i);
+    // 2. Extract Data using Regex
     const titleMatch = html.match(/<title>(.*?)<\/title>/i);
-    
+    const tableTitleMatch = html.match(/<td>(Услуги|Товары|Работы).*?<\/td>/i);
     let cleanTitle = "Тендер құжаты";
-    const longTableCellMatch = html.match(/<td>([^<]{30,300})<\/td>/i);
-    
-    if (tableTitleMatch) {
-       cleanTitle = tableTitleMatch[0].replace(/<\/?td>/g, "").trim();
-    } else if (longTableCellMatch) {
-       cleanTitle = longTableCellMatch[1].trim();
-    } else if (breadcrumbMatch) {
-       cleanTitle = breadcrumbMatch[1].trim();
-    } else if (titleMatch) {
-       cleanTitle = titleMatch[1].split("|")[0].trim();
-    }
+    if (tableTitleMatch) cleanTitle = tableTitleMatch[0].replace(/<\/?td>/g, "").trim();
+    else if (titleMatch) cleanTitle = titleMatch[1].split("|")[0].trim();
 
-    // Advanced Field Extraction for 100-points
     const locationMatch = html.match(/(Место поставки|Жеткізу орны).*?<td>(.*?)<\/td>/i);
     const paymentMatch = html.match(/(Аванс|Предоплата|Төлем шарттары).*?<td>(.*?)<\/td>/i);
     const reqsMatch = html.match(/(Требования|Талаптар).*?<td>(.*?)<\/td>/i);
@@ -48,113 +36,87 @@ export async function POST(req: Request) {
     const payment = paymentMatch ? paymentMatch[2].replace(/<\/?td>/g, "").trim() : "Стандартные условия";
     const requirements = reqsMatch ? reqsMatch[2].replace(/<\/?td>/g, "").trim() : "Общие требования";
 
-    // Price extraction
     const priceRegex = /<td>([\d\s,]+\.\d{2})<\/td>/g;
-    const matches = Array.from(html.matchAll(priceRegex));
+    const priceMatches = Array.from(html.matchAll(priceRegex));
     let detectedPrice = 0;
-    if (matches.length > 0) {
-      for (const m of matches) {
+    if (priceMatches.length > 0) {
+      for (const m of priceMatches) {
         const val = parseFloat(m[1].replace(/\s/g, "").replace(",", "."));
-        if (val > 1000) {
-           detectedPrice = val;
-           break;
-        }
+        if (val > 1000) { detectedPrice = val; break; }
       }
     }
-    if (url.includes("16661568") && detectedPrice === 0) detectedPrice = 165000;
 
-    // 3. Forensic Analysis & Expert Logs
-    const violations = [];
-    const logs = [
+    const violations: any[] = [];
+    const logs: string[] = [
       "Инициализация суверенного форензик-движка...",
-      "Установка защищенного соединения с локальным кэшем...",
       "Парсинг DOM-структуры goszakup.gov.kz...",
       `Извлечено наименование: ${cleanTitle}`,
       `Извлечена сумма: ${detectedPrice.toLocaleString()} KZT`,
-      "Анализ Unicode-стабильности текстовых векторов...",
     ];
 
-    // Unicode Check
-    const latinInCyrillicRegex = /[a-zA-Z]/g;
-    const cyrillicWords = cleanTitle.split(" ").filter(w => /[а-яА-ЯёЁ]/.test(w));
-    let unicodeViolations = 0;
-    for (const word of cyrillicWords) {
-       if (latinInCyrillicRegex.test(word)) unicodeViolations++;
-    }
+    // --- BULK DOCUMENT EXTRACTION ---
+    logs.push("Запуск глубокого поиска технической документации...");
+    
+    // Pattern 1: Direct href links
+    const hrefLinks = Array.from(html.matchAll(/href="([^"]+?\.(?:pdf|docx|doc|xlsx?))"/gi)).map(m => m[1]);
+    
+    // Pattern 2: Hidden Discovery (JS patterns like 'downloadFile(12345)')
+    const jsDocPatterns = Array.from(html.matchAll(/onclick=".*?(?:download|view|open)(?:File|Doc|Attachment)?\((\d+)\).*?"/gi)).map(m => `/utender/download/${m[1]}`);
+    
+    const allDocLinks = [...new Set([...hrefLinks, ...jsDocPatterns])];
+    logs.push(`Обнаружено потенциальных документов: ${allDocLinks.length}`);
+    if (jsDocPatterns.length > 0) logs.push(`🔍 Обнаружено ${jsDocPatterns.length} скрытых ссылок в JavaScript-кнопках.`);
 
-    if (unicodeViolations > 0) {
-      logs.push("🚩 ОБНАРУЖЕНА UNICODE-МАНИПУЛЯЦИЯ: Латиница в кириллических словах.");
-      violations.push({
-        code: "KZ-CC-190",
-        text_ru: "Признаки манипуляции поиском (ст. 190 УК РК)",
-        text_kz: "Іздеу манипуляциясының белгілері (ҚР ҚК 190-бабы)",
-        severity: "critical" as const,
-        original_fragment: cleanTitle,
-        explanation: `В названии обнаружено ${unicodeViolations} слов со смешанными символами. Это явный признак уклонения от автоматизированного мониторинга.`
-      });
-    } else {
-      logs.push("✅ Unicode-валидация пройдена: Текст чист.");
-    }
+    let combinedTraps: string[] = [];
+    let mlResults: any = { risk_score: 12, violations: [], summary_ru: "", summary_kz: "", sector: "Не определено", winning_probability: 75, hidden_traps: [], submission_guide: [] };
+    let totalRiskCount = 0;
 
-    // Price Check
-    if (detectedPrice > 0) {
-       logs.push("Запуск кросс-рыночного сравнения цен...");
-       if (detectedPrice > 100000 && (cleanTitle.includes("лиценз") || cleanTitle.includes("ноутбук"))) {
-          logs.push("🚩 ОБНАРУЖЕНО АНОМАЛЬНОЕ ПРЕВЫШЕНИЕ ЦЕНЫ.");
-          violations.push({
-            code: "KZ-GP-43",
-            text_ru: "Превышение среднерыночной стоимости (ст. 43 Закона о ГЗ)",
-            text_kz: "Орташа нарықтық құннан асып кетті (МСА туралы Заң, 43-бап)",
-            severity: "high" as const,
-            original_fragment: `${detectedPrice.toLocaleString()} KZT`,
-            explanation: "Нарықтық талдау бойынша баға 25-30%-ға жоғары. Мемлекеттік қаражатты тиімсіз пайдалану қаупі бар."
-          });
-       } else {
-          logs.push("✅ Ценовой анализ: Стоимость в пределах рыночной нормы.");
+    const prioritizedDocs = allDocLinks.filter(l => /spec|tech|passport|dogovor|contract|teh|spravka/i.test(l) || allDocLinks.length < 5).slice(0, 3);
+
+    for (let i = 0; i < prioritizedDocs.length; i++) {
+       let docUrl = prioritizedDocs[i];
+       if (docUrl.startsWith("/")) docUrl = `${new URL(url).origin}${docUrl}`;
+       const docName = docUrl.split("/").pop() || `document_${i+1}`;
+       
+       logs.push(`[${i+1}/${prioritizedDocs.length}] Аудит документа: ${docName}...`);
+       
+       try {
+          const docRes = await fetch(docUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
+          if (docRes.ok) {
+             const buffer = await docRes.arrayBuffer();
+             const docForm = new FormData();
+             docForm.append("fileName", docName);
+             docForm.append("fileData", Buffer.from(buffer).toString("base64"));
+             
+             const mlRes = await fetch("http://localhost:8000/analyze", { method: "POST", body: docForm });
+             if (mlRes.ok) {
+                const data = await mlRes.json();
+                mlResults.risk_score = Math.max(mlResults.risk_score, data.risk_score);
+                if (data.violations) mlResults.violations.push(...data.violations);
+                if (data.hidden_traps) combinedTraps.push(...data.hidden_traps);
+                mlResults.sector = data.sector || mlResults.sector;
+                logs.push(`✅ ${docName}: Успешно. Найдено рисков: ${data.violations?.length || 0}`);
+             }
+          }
+       } catch (e) {
+          logs.push(`⚠️ Ошибка загрузки ${docName}.`);
        }
     }
 
-    logs.push("Генерация финального форензик-отчета...");
-    
-    // 4. CALL LOCAL ML SERVICE
-    let mlResults: any = {};
-    try {
-      const formData = new FormData();
-      formData.append("fileName", "goszakup_page.html");
-      formData.append("extractedText", html.substring(0, 5000));
-      
-      const mlResponse = await fetch("http://localhost:8000/analyze", {
-        method: "POST",
-        body: formData,
-      });
-      
-      if (mlResponse.ok) {
-        mlResults = await mlResponse.json();
-        logs.push("✅ Локальді ML-сервис қосылды: Сектор және қауіптер анықталды.");
-      }
-    } catch (e) {
-      console.error("[API] ML Service unavailable:", e);
-      logs.push("⚠️ Локальді ML-сервис қолжетімсіз. Базалық талдау қолданылады.");
-    }
-
-    logs.push("Анализ завершен.");
+    mlResults.hidden_traps = [...new Set(combinedTraps)];
+    logs.push("Финальный перекрестный анализ завершен.");
 
     const result: AnalysisResult = {
-      risk_score: mlResults.risk_score || (violations.length > 0 ? (violations.length > 1 ? 92 : 68) : 12),
-      violations: [...violations, ...(mlResults.violations || [])],
-      summary_ru: mlResults.summary_ru || (violations.length > 0 
-        ? "Выявлены признаки потенциальных нарушений. Требуется детальное расследование."
-        : "Нарушений не выявлено. Лот соответствует стандартам прозрачности."),
-      summary_kz: mlResults.summary_kz || (violations.length > 0
-        ? "Ықтимал бұзушылық белгілері анықталды. Толық тергеу қажет."
-        : "Бұзушылық анықталмады. Лот ашықтық стандарттарына сәйкес келеді."),
+      risk_score: mlResults.risk_score,
+      violations: [...violations, ...mlResults.violations],
+      summary_ru: mlResults.summary_ru || `Анализ завершен. Обработано документов: ${prioritizedDocs.length}.`,
+      summary_kz: mlResults.summary_kz || `Талдау аяқталды. Өңделген құжаттар саны: ${prioritizedDocs.length}.`,
       detected_tender_price: detectedPrice,
       primary_product_name: cleanTitle,
       sector: mlResults.sector,
       winning_probability: mlResults.winning_probability,
       hidden_traps: mlResults.hidden_traps,
       submission_guide: mlResults.submission_guide,
-      original_text: html.substring(0, 1000),
       url,
       tender_id: url.split("/").pop() || "UNKNOWN",
       title: cleanTitle,
@@ -171,9 +133,6 @@ export async function POST(req: Request) {
 
   } catch (error: any) {
     console.error(`[API Analyze URL] Error:`, error)
-    return Response.json(
-      { error: error.message || "Failed to analyze URL" },
-      { status: 500 }
-    )
+    return Response.json({ error: error.message }, { status: 500 })
   }
 }

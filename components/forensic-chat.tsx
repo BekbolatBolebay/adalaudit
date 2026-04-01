@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { 
   Send, Bot, User, X, Loader2, Mic, MicOff, 
   Brain, Sparkles, Command, ShieldCheck,
-  ChevronRight
+  ChevronRight, Globe
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useI18n } from "@/lib/i18n"
@@ -100,6 +100,43 @@ export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }
                 content: locale === "kz" 
                     ? "Кешіріңіз, жергілікті чат қызметінде қате орын алды." 
                     : "Извините, произошла ошибка в работе локального чата."
+            }]);
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    const handleGlobalIntel = async () => {
+        if (!input.trim() || isLoading) return;
+        
+        setIsLoading(true);
+        const userMessage = { id: Date.now().toString(), role: "user", content: `🌍 [GLOBAL INTEL]: ${input}` };
+        setMessages(prev => [...prev, userMessage]);
+        setInput("");
+
+        try {
+            const res = await fetch("/api/external-intel", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt: input, locale })
+            });
+
+            if (!res.ok) throw new Error("Intel service error");
+
+            const data = await res.json();
+            setMessages(prev => [...prev, {
+                id: (Date.now() + 1).toString(),
+                role: "assistant",
+                content: data.content
+            }]);
+        } catch (err) {
+            console.error("Global Intel Error:", err);
+            setMessages(prev => [...prev, {
+                id: (Date.now() + 1).toString(),
+                role: "assistant",
+                content: locale === "kz" 
+                    ? "Кешіріңіз, жаһандық интеллект қызметінде қате орын алды." 
+                    : "Извините, произошла ошибка в работе глобального интеллекта."
             }]);
         } finally {
             setIsLoading(false);
@@ -314,6 +351,17 @@ export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }
                         ) : (
                             <Send className="w-5 h-5" />
                         )}
+                    </Button>
+                    <Button 
+                        type="button" 
+                        variant="outline"
+                        size="icon" 
+                        disabled={!input.trim() || isLoading} 
+                        onClick={handleGlobalIntel}
+                        className="h-12 w-12 rounded-2xl border-primary/20 bg-primary/5 hover:bg-primary/10 shadow-lg transition-all hover:scale-105 active:scale-95 shrink-0"
+                        title="Search Global AI Intel"
+                    >
+                        <Globe className="w-5 h-5 text-primary" />
                     </Button>
                 </form>
             </CardFooter>
