@@ -95,6 +95,9 @@ export async function POST(req: Request) {
                 if (data.violations) mlResults.violations.push(...data.violations);
                 if (data.hidden_traps) combinedTraps.push(...data.hidden_traps);
                 mlResults.sector = data.sector || mlResults.sector;
+                mlResults.financial_guide = data.financial_guide;
+                mlResults.participation_map = data.participation_map;
+                mlResults.winning_probability = data.winning_probability;
                 logs.push(`✅ ${docName}: Успешно. Найдено рисков: ${data.violations?.length || 0}`);
              }
           }
@@ -131,6 +134,8 @@ export async function POST(req: Request) {
       winning_probability: mlResults.winning_probability,
       hidden_traps: mlResults.hidden_traps,
       submission_guide: mlResults.submission_guide,
+      financial_guide: mlResults.financial_guide,
+      participation_map: mlResults.participation_map,
       url,
       tender_id: url.split("/").pop() || "UNKNOWN",
       title: cleanTitle,

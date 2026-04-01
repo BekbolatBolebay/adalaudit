@@ -275,10 +275,10 @@ export function TenderView() {
                          <span className="text-[9px] font-mono tracking-widest uppercase font-black text-orange-400/40">Documents (Құжаттар)</span>
                       </div>
                       <div className="space-y-1">
-                         {result.participation_map?.critical_docs?.slice(0, 3).map((doc: string, i: number) => (
-                            <div key={i} className="text-[10px] flex items-center gap-2 text-white/80 truncate">
-                               <div className="h-1 w-1 rounded-full bg-orange-400" />
-                               {doc}
+                         {result.participation_map?.critical_docs?.map((doc: string, i: number) => (
+                            <div key={i} className="text-[10px] flex items-center gap-2 text-white/80">
+                               <div className="h-1 w-1 rounded-full bg-orange-400 shrink-0" />
+                               <span className="truncate">{doc}</span>
                             </div>
                          ))}
                       </div>
@@ -297,6 +297,22 @@ export function TenderView() {
                            <Badge variant="outline" className="text-[8px] border-white/10 uppercase tracking-tighter">Prob: {result.winning_probability}%</Badge>
                          </div>
                       </div>
+                   </div>
+                </div>
+
+                {/* NEW: FULL CHRONOLOGICAL ROADMAP (Қадамдық жоспар) */}
+                <div className="p-8 rounded-3xl border border-primary/20 bg-primary/5 space-y-6">
+                   <div className="flex items-center gap-3">
+                      <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center text-[10px] font-black text-black">1</div>
+                      <span className="text-[10px] font-mono tracking-[0.4em] uppercase font-black text-primary/60">Execution Roadmap (Қадамдық жоспар)</span>
+                   </div>
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {result.submission_guide?.map((step: string, i: number) => (
+                        <div key={i} className="flex gap-4 p-4 rounded-xl bg-black/20 border border-white/5">
+                           <div className="text-primary font-mono text-xs font-bold pt-0.5">{i+1}.</div>
+                           <p className="text-[11px] text-white/80 leading-relaxed font-medium">{step}</p>
+                        </div>
+                      ))}
                    </div>
                 </div>
 
