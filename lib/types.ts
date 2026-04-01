@@ -33,7 +33,14 @@ export type AnalysisResult = {
     guarantee_3_percent: number
     recommended_bid: number
     min_capital_required: number
+    operational_capital_30d: number
     strategy: string
+  }
+  participation_map?: {
+    required_capabilities: string[]
+    info_checklist: string[]
+    critical_docs: string[]
+    execution_risk: string
   }
   url?: string
   tender_id?: string

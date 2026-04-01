@@ -1,7 +1,7 @@
 import re
 from fastapi import FastAPI, Form
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict
 import joblib
 import numpy as np
 import base64
@@ -21,6 +21,19 @@ class Violation(BaseModel):
     original_fragment: str
     explanation: str
 
+class FinancialGuide(BaseModel):
+    guarantee_3_percent: float
+    recommended_bid: float
+    min_capital_required: float
+    operational_capital_30d: float
+    strategy: str
+
+class ParticipationMap(BaseModel):
+    required_capabilities: List[str]
+    info_checklist: List[str]
+    critical_docs: List[str]
+    execution_risk: str
+
 class AnalysisResult(BaseModel):
     risk_score: float
     violations: List[Violation]
@@ -32,30 +45,22 @@ class AnalysisResult(BaseModel):
     winning_probability: Optional[float] = 0.0
     hidden_traps: List[str] = []
     submission_guide: List[str] = []
-    financial_guide: Optional[dict] = None
+    financial_guide: Optional[FinancialGuide] = None
+    participation_map: Optional[ParticipationMap] = None
 
 class TranslationRequest(BaseModel):
     fileData: Optional[str] = None
     fileName: Optional[str] = "document.pdf"
     extractedText: Optional[str] = ""
 
-class TranslationViolation(BaseModel):
-    fragment: str
-    type: str
-    tooltip: str
-
 class TranslationResponse(BaseModel):
     original_text: str
-    violations: List[TranslationViolation]
+    violations: List[dict]
     translated_kz: str
     violation_count: int
 
-class ChatMessage(BaseModel):
-    role: str
-    content: str
-
 class ChatRequest(BaseModel):
-    messages: List[ChatMessage]
+    messages: List[dict]
     context: Optional[dict] = None
 
 # --- HELPERS ---
@@ -91,41 +96,7 @@ SECTOR_KEYWORDS = {
     "Food": ["продукты питания", "хлеб", "молоко", "азық-түлік", "сүт", "нан"],
 }
 
-def detect_unicode_manipulation(text: str):
-    latin_in_cyrillic = re.findall(r'[а-яА-ЯёЁ]*[a-zA-Z]+[а-яА-ЯёЁ]*', text)
-    return latin_in_cyrillic
-
 # --- ENDPOINTS ---
-
-@app.post("/chat")
-async def chat_endpoint(request: ChatRequest):
-    last_message = request.messages[-1].content.lower() if request.messages else ""
-    ctx = request.context or {}
-    is_kz = any(c in last_message for c in "әіңғүұқөһ") or "сәлем" in last_message
-    
-    product = ctx.get("primary_product_name") or ("Нысан" if is_kz else "Объект")
-    risk = ctx.get("risk_score") or 0.0
-    prob = ctx.get("winning_probability") or 0.0
-    sector = ctx.get("sector") or ("Белгісіз" if is_kz else "Прочее")
-    traps = ctx.get("hidden_traps") or []
-
-    if any(k in last_message for k in ["риск", "тәуекел", "қауіп"]):
-        response = f"### 🚩 ТӘУЕКЕЛДЕР: {product}\n\n" if is_kz else f"### 🚩 РИСКИ: {product}\n\n"
-        if risk > 40:
-            response += f"⚠️ **Внимание!** Высокий риск ({risk}%). " if not is_kz else f"⚠️ **Назар аударыңыз!** Жоғары тәуекел ({risk}%). "
-            if traps:
-                response += f"\n\n**{'Анықталған тұзақтар' if is_kz else 'Обнаруженные ловушки'}:**\n"
-                for t in traps: response += f"- {t}\n"
-        else:
-            response += "✅ Риски минимальны." if not is_kz else "✅ Тәуекелдер минималды."
-    elif any(k in last_message for k in ["интернет", "сұрау", "спроси", "ai"]):
-        response = "🌍 **GLOBAL HYBRID AI MODE**\n\n" if is_kz else "🌍 **GLOBAL HYBRID AI MODE**\n\n"
-        response += "Сіз интернеттегі AI-дан қосымша ақпарат алғыңыз келе ме? Бұл режим жалпы нарықтық ақпаратты алу үшін қолжетімді. (Хотите получить информацию из глобального ИИ? Этот режим доступен для получения общей рыночной справки.)"
-    else:
-        response = f"### 🏛️ ADAL LOCAL EXPERT\n\n{product} ({sector}). "
-        response += f"Шанс на успех: {prob}%." if not is_kz else f"Жеңіс ықтималдығы: {prob}%."
-
-    return {"role": "assistant", "content": response}
 
 @app.post("/analyze", response_model=AnalysisResult)
 async def analyze(
@@ -135,7 +106,6 @@ async def analyze(
 ):
     is_deep_analysis = False
     
-    # Priority 1: Handle PDF
     if fileData and fileName.lower().endswith(".pdf"):
         try:
             pdf_bytes = base64.b64decode(fileData)
@@ -143,8 +113,6 @@ async def analyze(
             extractedText = "\n".join([p.extract_text() or "" for p in reader.pages])
             is_deep_analysis = True
         except Exception: pass
-    
-    # Priority 2: Handle DOCX
     elif fileData and fileName.lower().endswith(".docx"):
         try:
             doc_bytes = base64.b64decode(fileData)
@@ -153,7 +121,6 @@ async def analyze(
             is_deep_analysis = True
         except Exception: pass
 
-    # Detect Hidden Traps
     hidden_traps = []
     for trap_name, patterns in HIDDEN_TRAPS_DETAILED.items():
         for pat in patterns:
@@ -161,9 +128,8 @@ async def analyze(
                 hidden_traps.append(trap_name)
                 break
 
-    # Price & Product Detection (Minimal)
     detected_price = 0.0
-    price_match = re.search(r'([\d\s,]+)\s*(?:тенге|тг|KZT)', extractedText, re.IGNORECASE)
+    price_match = re.search(r'([\d\s,]{4,12})\s*(?:тенге|тг|KZT)', extractedText, re.IGNORECASE)
     if price_match:
         try: detected_price = float(price_match.group(1).replace(' ', '').replace(',', '.'))
         except: pass
@@ -172,12 +138,6 @@ async def analyze(
     prod_match = re.search(r'(?:[тт]овар|[лл]от|[пп]редмет)[:\s]+([^.\n,]{3,60})', extractedText, re.IGNORECASE)
     if prod_match: product_name = prod_match.group(1).strip()
 
-    # Detect Unicode Manipulation
-    manipulations = detect_unicode_manipulation(extractedText)
-    if manipulations:
-        hidden_traps.append("Unicode Manipulation (Символдарды айлалау)")
-
-    # Risk Score calculation
     risk_score = 12.0 + (len(hidden_traps) * 18.0)
     risk_score = min(98.0, risk_score)
     
@@ -192,44 +152,57 @@ async def analyze(
             explanation=f"Данное условие ограничивает конкуренцию согласно ст. 4 Закона о ГЗ РК."
         ))
 
-    sector = "Прочее"
+    current_sector = "Прочее"
     for sec, keywords in SECTOR_KEYWORDS.items():
         if any(k in extractedText.lower() for k in keywords):
-            sector = sec
+            current_sector = sec
             break
 
     winning_prob = float(92.0 - (risk_score * 0.95))
-    winning_prob = max(4.0, min(92.0, winning_prob))
-
-    # FINANCIAL GUIDE & STRATEGY
-    guarantee = detected_price * 0.03 # 3% Bank Guarantee
-    recommended_bid = detected_price * (0.985 if risk_score < 30 else 0.995) if detected_price > 0 else 0
     
-    sub_guide = [
-        "Құжаттарды (Техспец) мұқият тексеріңіз." if winning_prob > 50 else "Бұл лот өте қауіпті, аулақ болыңыз.",
-        "Банктік кепілдікті алдын-ала дайындаңыз.",
-        "Сұрақтар болса, портал арқылы түсініктеме сұраңыз."
-    ]
-
-    financial_guide = {
-        "guarantee_3_percent": guarantee,
-        "recommended_bid": recommended_bid,
-        "min_capital_required": guarantee * 1.5,
-        "strategy": "Төмен бағамен ұсыну (Демпингсіз)" if risk_score < 40 else "Қауіпсіздік үшін максималды бағаға жақын ұсыну"
-    }
+    # FINANCIALS
+    guarantee = detected_price * 0.03
+    recommended_bid = detected_price * (0.985 if risk_score < 30 else 0.995)
+    operational_30d = detected_price * 0.15 
+    
+    # PARTICIPATION MAP
+    capabilities = [f"Опыт в секторе {current_sector}"]
+    if current_sector == "Construction": capabilities += ["Лицензия ГСЛ", "Инженеры технадзора"]
+    if current_sector == "IT": capabilities += ["Сертификат соответствия", "Мамандар (DevOps/Dev)"]
+    
+    checklist = ["Проверка на отсутствие в Реестре недобросовестных", "Техникалық спецификацияны дайындау"]
+    if risk_score > 50: checklist += ["Портал арқылы сұрақ қою (Clarification Request)"]
+    
+    docs = ["Кепілдік хат", "Салықтық анықтама", "Лицензия көшірмесі"]
 
     return AnalysisResult(
         risk_score=min(float(risk_score), 100.0),
         violations=violations,
-        summary_ru=f"Глубокий анализ завершен ({fileName}). Найдено ловушек: {len(hidden_traps)}." if is_deep_analysis else f"Анализ страницы завершен. Найдено ловушек: {len(hidden_traps)}.",
-        summary_kz=f"Құжатты терең талдау аяқталды ({fileName}). Табылған тұзақтар: {len(hidden_traps)}." if is_deep_analysis else f"Бетті талдау аяқталды. Табылған тұзақтар: {len(hidden_traps)}.",
+        summary_ru=f"Глубокий анализ завершен. Найдено ловушек: {len(hidden_traps)}.",
+        summary_kz=f"Құжатты терең талдау аяқталды. Табылған тұзақтар: {len(hidden_traps)}.",
         primary_product_name=product_name,
         detected_tender_price=detected_price,
-        sector=sector,
+        sector=current_sector,
         winning_probability=float(int(winning_prob * 10) / 10),
         hidden_traps=hidden_traps,
-        submission_guide=sub_guide,
-        financial_guide=financial_guide
+        submission_guide=[
+            "Құжаттарды мұқият жинақтаңыз.",
+            "Техникалық ерекшелікті (Техспец) тексеріңіз.",
+            "Сұрақтар болса, портал арқылы заңды сұрау жіберіңіз."
+        ],
+        financial_guide=FinancialGuide(
+            guarantee_3_percent=guarantee,
+            recommended_bid=recommended_bid,
+            min_capital_required=guarantee * 1.5,
+            operational_capital_30d=operational_30d,
+            strategy="Агрессиялы баға" if risk_score < 30 else "Сақтық баға (Maximum)"
+        ),
+        participation_map=ParticipationMap(
+            required_capabilities=capabilities,
+            info_checklist=checklist,
+            critical_docs=docs,
+            execution_risk="Low" if risk_score < 40 else "High (Complexity triggers)"
+        )
     )
 
 if __name__ == "__main__":

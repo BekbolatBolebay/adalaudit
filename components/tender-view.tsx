@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useI18n } from "@/lib/i18n"
-import { Search, Loader2, Link2, AlertCircle, CheckCircle2, ShieldCheck, Zap } from "lucide-react"
+import { Search, Loader2, Link2, AlertCircle, CheckCircle2, ShieldCheck, Zap, Coins, UserCheck, FileText, ClipboardCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
@@ -232,6 +232,74 @@ export function TenderView() {
                   </div>
                 </div>
 
+                {/* 360-DEGREE PARTICIPATION MAP */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                   {/* 1. MONEY (FINANCIAL) */}
+                   <div className="p-6 rounded-2xl border border-primary/20 bg-primary/5 space-y-4">
+                      <div className="flex items-center justify-between">
+                         <Coins className="h-4 w-4 text-primary" />
+                         <span className="text-[9px] font-mono tracking-widest uppercase font-black text-primary/40">Money (Қаржы)</span>
+                      </div>
+                      <div className="space-y-2">
+                         <div className="flex flex-col">
+                            <span className="text-[10px] text-muted-foreground uppercase">3% Guarantee:</span>
+                            <span className="text-base font-bold text-white">{result.financial_guide?.guarantee_3_percent?.toLocaleString()} ₸</span>
+                         </div>
+                         <div className="flex flex-col pt-2 border-t border-white/5">
+                            <span className="text-[10px] text-muted-foreground uppercase">Op-Capital (30d):</span>
+                            <span className="text-xs font-mono text-primary">{result.financial_guide?.operational_capital_30d?.toLocaleString()} ₸</span>
+                         </div>
+                      </div>
+                   </div>
+
+                   {/* 2. CAPABILITIES (SKILLS) */}
+                   <div className="p-6 rounded-2xl border border-blue-500/20 bg-blue-500/5 space-y-4">
+                      <div className="flex items-center justify-between">
+                         <UserCheck className="h-4 w-4 text-blue-400" />
+                         <span className="text-[9px] font-mono tracking-widest uppercase font-black text-blue-400/40">Capabilities (Мамандар)</span>
+                      </div>
+                      <div className="space-y-1">
+                         {result.participation_map?.required_capabilities?.map((cap: string, i: number) => (
+                            <div key={i} className="text-[10px] flex items-center gap-2 text-white/80">
+                               <div className="h-1 w-1 rounded-full bg-blue-400" />
+                               {cap}
+                            </div>
+                         ))}
+                      </div>
+                   </div>
+
+                   {/* 3. DOCUMENTS (DATA) */}
+                   <div className="p-6 rounded-2xl border border-orange-500/20 bg-orange-500/5 space-y-4">
+                      <div className="flex items-center justify-between">
+                         <FileText className="h-4 w-4 text-orange-400" />
+                         <span className="text-[9px] font-mono tracking-widest uppercase font-black text-orange-400/40">Documents (Құжаттар)</span>
+                      </div>
+                      <div className="space-y-1">
+                         {result.participation_map?.critical_docs?.slice(0, 3).map((doc: string, i: number) => (
+                            <div key={i} className="text-[10px] flex items-center gap-2 text-white/80 truncate">
+                               <div className="h-1 w-1 rounded-full bg-orange-400" />
+                               {doc}
+                            </div>
+                         ))}
+                      </div>
+                   </div>
+
+                   {/* 4. EXECUTION RISK */}
+                   <div className="p-6 rounded-2xl border border-white/5 bg-white/[0.02] space-y-4">
+                      <div className="flex items-center justify-between">
+                         <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
+                         <span className="text-[9px] font-mono tracking-widest uppercase font-black text-white/20">Risk (Тәуекел)</span>
+                      </div>
+                      <div className="space-y-1">
+                         <div className="text-[10px] font-bold text-white uppercase">{result.participation_map?.execution_risk}</div>
+                         <div className="text-[9px] text-muted-foreground">Execution feasibility score</div>
+                         <div className="pt-2">
+                           <Badge variant="outline" className="text-[8px] border-white/10 uppercase tracking-tighter">Prob: {result.winning_probability}%</Badge>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                    <div className="relative group p-8 rounded-3xl border border-white/5 bg-white/[0.02] overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -272,90 +340,52 @@ export function TenderView() {
                    </div>
                 </div>
 
-                {/* NEW: Financial Guide & Bidding Strategy */}
-                {result.financial_guide && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                     <div className="p-8 rounded-3xl border border-blue-500/20 bg-blue-500/5 space-y-6">
-                        <div className="flex items-center gap-3">
-                           <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-                           <span className="text-[10px] font-mono tracking-[0.4em] uppercase font-black text-blue-400/60">Financial Guide (Қаржылық нұсқаулық)</span>
-                        </div>
-                        <div className="space-y-4">
-                           <div className="flex items-center justify-between">
-                              <span className="text-sm text-muted-foreground">3% Кепілдік (Guarantee):</span>
-                              <span className="text-xl font-bold text-white">{result.financial_guide.guarantee_3_percent?.toLocaleString()} ₸</span>
-                           </div>
-                           <div className="flex items-center justify-between">
-                              <span className="text-sm text-muted-foreground">Қажетті капитал (Min Capital):</span>
-                              <span className="text-sm font-mono text-blue-400">{result.financial_guide.min_capital_required?.toLocaleString()} ₸</span>
-                           </div>
-                           <div className="h-px bg-white/5" />
-                           <div className="flex items-center justify-between text-primary">
-                              <span className="text-sm font-bold uppercase tracking-wider">Ұсынылатын баға (Rec. Bid):</span>
-                              <span className="text-2xl font-black">{result.financial_guide.recommended_bid?.toLocaleString()} ₸</span>
-                           </div>
-                        </div>
-                     </div>
-
-                     <div className="p-8 rounded-3xl border border-primary/20 bg-primary/5 space-y-6">
-                        <div className="flex items-center gap-3">
-                           <div className="h-2 w-2 rounded-full bg-primary" />
-                           <span className="text-[10px] font-mono tracking-[0.4em] uppercase font-black text-primary/60">Submission Strategy (Стратегия)</span>
-                        </div>
-                        <div className="space-y-4">
-                           <div className="p-4 rounded-xl bg-black/20 border border-white/5 text-xs text-white/80 leading-relaxed">
-                              <strong>Стратегия:</strong> {result.financial_guide.strategy}
-                           </div>
-                           <div className="space-y-2">
-                             {result.submission_guide?.map((step: string, i: number) => (
-                               <div key={i} className="text-[11px] flex items-center gap-3 text-muted-foreground">
-                                 <div className="h-1 w-1 rounded-full bg-primary shrink-0" />
-                                 {step}
-                               </div>
-                             ))}
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-                )}
-
-                {/* NEW: Hidden Traps in TenderView */}
+                {/* DETAILED STRATEGY GRID */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                   <div className="p-8 rounded-3xl border border-destructive/20 bg-destructive/5 space-y-4">
+                   <div className="p-8 rounded-3xl border border-blue-500/20 bg-blue-500/5 space-y-6">
+                      <div className="flex items-center gap-3">
+                         <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+                         <span className="text-[10px] font-mono tracking-[0.4em] uppercase font-black text-blue-400/60">Rec. Bid Strategy (Баға стратегиясы)</span>
+                      </div>
+                      <div className="space-y-4">
+                         <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Ұсынылатын баға:</span>
+                            <span className="text-2xl font-black text-white">{result.financial_guide?.recommended_bid?.toLocaleString()} ₸</span>
+                         </div>
+                         <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-[11px] text-blue-300">
+                           <strong>Типі:</strong> {result.financial_guide?.strategy}
+                         </div>
+                         <div className="space-y-2">
+                           <span className="text-[10px] font-mono text-muted-foreground uppercase">Preparation Checklist:</span>
+                           {result.participation_map?.info_checklist?.map((item: string, i: number) => (
+                             <div key={i} className="text-[11px] flex items-center gap-2 text-white/60">
+                               <div className="h-1 w-1 rounded-full bg-blue-400" />
+                               {item}
+                             </div>
+                           ))}
+                         </div>
+                      </div>
+                   </div>
+
+                   <div className="p-8 rounded-3xl border border-destructive/20 bg-destructive/5 space-y-6">
                       <div className="flex items-center gap-3">
                          <div className="h-2 w-2 rounded-full bg-destructive" />
-                         <span className="text-[10px] font-mono tracking-[0.4em] uppercase font-black text-destructive/60">{t("scanner.result.traps")}</span>
+                         <span className="text-[10px] font-mono tracking-[0.4em] uppercase font-black text-destructive/60">Hidden Traps (Жасырын тұзақтар)</span>
                       </div>
-                      <div className="flex flex-col gap-2">
+                      <div className="space-y-3">
                         {result.hidden_traps && result.hidden_traps.length > 0 ? (
                           result.hidden_traps.map((trap: string, i: number) => (
-                            <div key={i} className="text-xs flex items-center gap-2 text-foreground/80 bg-destructive/10 border border-destructive/20 px-3 py-2 rounded-xl">
-                              <AlertCircle className="h-3 w-3 text-destructive shrink-0" />
+                            <div key={i} className="text-xs flex items-center gap-3 text-destructive/90 bg-destructive/10 border border-destructive/20 px-4 py-3 rounded-xl">
+                              <AlertCircle className="h-4 w-4 shrink-0" />
                               {trap}
                             </div>
                           ))
                         ) : (
-                          <p className="text-xs text-muted-foreground italic">{locale === 'kz' ? 'Жасырын тұзақтар анықталмады' : 'Скрытых ловушек не обнаружено'}</p>
+                          <div className="text-xs text-muted-foreground italic flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            {locale === 'kz' ? 'Жасырын тұзақтар анықталмады' : 'Скрытых ловушек не обнаружено'}
+                          </div>
                         )}
-                      </div>
-                   </div>
-
-                   <div className="p-8 rounded-3xl border border-primary/20 bg-primary/5 space-y-4">
-                      <div className="flex items-center gap-3">
-                         <div className="h-2 w-2 rounded-full bg-primary" />
-                         <span className="text-[10px] font-mono tracking-[0.4em] uppercase font-black text-primary/60">Winning Probability</span>
-                      </div>
-                      <div className="space-y-4">
-                        <div className="flex items-end justify-between">
-                          <span className="text-3xl font-black text-primary">{result.winning_probability || 0}%</span>
-                          <span className="text-[10px] font-mono text-muted-foreground uppercase">{t("scanner.result.winning_prob")}</span>
-                        </div>
-                        <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
-                           <div 
-                             className="h-full bg-primary transition-all duration-1000"
-                             style={{ width: `${result.winning_probability || 0}%` }}
-                           />
-                        </div>
                       </div>
                    </div>
                 </div>
