@@ -19,6 +19,7 @@ export function TenderView() {
   const [protocolData, setProtocolData] = useState<any>(null)
   const [isGeneratingProtocol, setIsGeneratingProtocol] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [activeLogs, setActiveLogs] = useState<string[]>([])
 
   const handleAnalyze = async () => {
     if (!url) return
@@ -26,6 +27,7 @@ export function TenderView() {
     setError(null)
     setResult(null)
     setProtocolData(null)
+    setActiveLogs([])
 
     try {
       const response = await fetch("/api/analyze-url", {
@@ -36,6 +38,15 @@ export function TenderView() {
       const data = await response.json()
       
       if (data.error) throw new Error(data.error)
+
+      // LIVE STREAM EFFECT for Logs
+      if (data.metadata?.forensic_logs) {
+         for (let i = 0; i < data.metadata.forensic_logs.length; i++) {
+            await new Promise(r => setTimeout(r, 600 + Math.random() * 400));
+            setActiveLogs(prev => [...prev, data.metadata.forensic_logs[i]]);
+         }
+      }
+
       setResult(data)
     } catch (err: any) {
       setError(err.message || "Талдау барысында қате кетті")
@@ -95,13 +106,13 @@ export function TenderView() {
               <div className="relative flex gap-4">
                 <div className="relative flex-1">
                   <Link2 className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground/50 transition-colors group-focus-within:text-primary" />
-                  <Input 
-                    placeholder={t("tender.input.placeholder")}
-                    value={url}
-                    onChange={(e) => setUrl(e.target.value)}
-                    className="h-16 pl-14 pr-6 rounded-xl bg-background/50 border-white/5 focus:border-primary/40 focus:ring-primary/20 transition-all text-lg font-medium"
-                    onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
-                  />
+                    <Input 
+                      placeholder={t("tender.input.placeholder")}
+                      value={url}
+                      onChange={(e) => setUrl(e.target.value)}
+                      className="h-16 pl-14 pr-6 rounded-xl bg-background/50 border-white/5 focus:border-primary/40 focus:ring-primary/20 transition-all text-lg font-medium placeholder:text-muted-foreground/30 shadow-[0_0_20px_rgba(var(--primary-rgb),0.05)] focus:shadow-[0_0_30px_rgba(var(--primary-rgb),0.1)]"
+                      onKeyDown={(e) => e.key === 'Enter' && handleAnalyze()}
+                    />
                 </div>
                 <Button 
                   onClick={handleAnalyze} 
@@ -122,23 +133,63 @@ export function TenderView() {
           </div>
 
           <AnimatePresence mode="wait">
-            {isAnalyzing && (
+            {(isAnalyzing || activeLogs.length > 0) && !result && (
               <motion.div 
-                key="loading"
+                key="loading-stream"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="flex flex-col items-center justify-center py-12 gap-6"
+                exit={{ opacity: 0, scale: 1.02 }}
+                className="space-y-6"
               >
-                <div className="relative">
-                   <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
-                   <Loader2 className="h-16 w-16 text-primary animate-spin relative" />
+                <div className="relative p-10 rounded-3xl border border-primary/20 bg-primary/5 overflow-hidden">
+                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(var(--primary-rgb),0.1),transparent_70%)]" />
+                   
+                   <div className="relative flex flex-col items-center gap-8">
+                      <div className="relative h-24 w-24">
+                        <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse" />
+                        <div className="absolute inset-0 border-2 border-primary/20 rounded-full border-t-primary animate-spin" />
+                        <Search className="absolute inset-x-0 inset-y-0 h-10 w-10 text-primary m-auto animate-pulse" />
+                      </div>
+
+                      <div className="w-full max-w-lg space-y-3 font-mono">
+                        <div className="flex items-center justify-between text-[10px] uppercase tracking-widest text-primary/60 font-black mb-4">
+                           <span>Forensic Stream v2.5</span>
+                           <span className="animate-pulse">Live // Analyzing</span>
+                        </div>
+                        
+                        <div className="min-h-[120px] space-y-2">
+                           {activeLogs.map((log, idx) => (
+                             <motion.div 
+                               key={idx}
+                               initial={{ x: -10, opacity: 0 }}
+                               animate={{ x: 0, opacity: 1 }}
+                               className="text-xs text-white/80 flex items-start gap-3 border-l border-primary/20 pl-4 py-1"
+                             >
+                               <span className="text-primary opacity-50 shrink-0">[{idx+1}]</span>
+                               <span className="leading-relaxed">{log}</span>
+                             </motion.div>
+                           ))}
+                        </div>
+                      </div>
+                   </div>
                 </div>
-                <div className="text-center space-y-2">
-                   <p className="text-xl font-bold tracking-tight text-white/80">{t("tender.status.fetching")}</p>
-                   <p className="text-[10px] font-mono tracking-widest uppercase text-muted-foreground animate-pulse">
-                     Sovereign Engine Active / No External Leak
-                   </p>
+
+                <div className="flex justify-center gap-2">
+                   {[0, 1, 2].map(i => (
+                     <motion.div 
+                       key={i}
+                       animate={{ 
+                         scale: [1, 1.5, 1],
+                         opacity: [0.2, 1, 0.2]
+                       }}
+                       transition={{ 
+                         duration: 1, 
+                         repeat: Infinity, 
+                         delay: i * 0.2 
+                       }}
+                       className="h-1.5 w-1.5 rounded-full bg-primary"
+                     />
+                   ))}
                 </div>
               </motion.div>
             )}
@@ -182,22 +233,31 @@ export function TenderView() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                   <div className="p-8 rounded-3xl border border-white/5 bg-white/[0.02] space-y-6">
-                      <div className="flex items-center gap-3">
-                         <div className="h-2 w-2 rounded-full bg-primary" />
-                         <span className="text-[10px] font-mono tracking-[0.4em] uppercase font-black text-white/40">{t("scanner.risk")}</span>
-                      </div>
-                      <div className="flex items-end gap-6">
-                         <div className="text-8xl font-black text-primary tracking-tighter">{result.risk_score}%</div>
-                         <div className="pb-4">
-                            <div className={cn(
-                               "text-xl font-bold uppercase tracking-tight",
-                               result.risk_score > 70 ? "text-red-500" : result.risk_score > 40 ? "text-orange-500" : "text-green-500"
-                            )}>
-                               {result.risk_score > 70 ? t("risk.critical") : result.risk_score > 40 ? t("risk.high") : t("risk.low")}
-                            </div>
-                            <div className="text-[10px] font-mono tracking-widest text-muted-foreground mt-1 uppercase">{t("forensic.violations.count")}: {result.violations?.length}</div>
-                         </div>
+                   <div className="relative group p-8 rounded-3xl border border-white/5 bg-white/[0.02] overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                      <div className="relative space-y-6">
+                        <div className="flex items-center gap-3">
+                           <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                           <span className="text-[10px] font-mono tracking-[0.4em] uppercase font-black text-white/40">{t("scanner.risk")}</span>
+                        </div>
+                        <div className="flex items-end gap-6">
+                           <motion.div 
+                             initial={{ opacity: 0, y: 20 }}
+                             animate={{ opacity: 1, y: 0 }}
+                             className="text-8xl font-black text-primary tracking-tighter"
+                           >
+                             {result.risk_score}%
+                           </motion.div>
+                           <div className="pb-4">
+                              <div className={cn(
+                                 "text-xl font-bold uppercase tracking-tight",
+                                 result.risk_score > 70 ? "text-red-500" : result.risk_score > 40 ? "text-orange-500" : "text-green-500"
+                              )}>
+                                 {result.risk_score > 70 ? t("risk.critical") : result.risk_score > 40 ? t("risk.high") : t("risk.low")}
+                              </div>
+                              <div className="text-[10px] font-mono tracking-widest text-muted-foreground mt-1 uppercase">{t("forensic.violations.count")}: {result.violations?.length}</div>
+                           </div>
+                        </div>
                       </div>
                    </div>
 
