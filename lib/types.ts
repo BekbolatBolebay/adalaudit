@@ -25,6 +25,10 @@ export type AnalysisResult = {
   original_text: string
   primary_product_name?: string
   detected_tender_price?: number
+  sector?: string
+  winning_probability?: number
+  hidden_traps?: string[]
+  submission_guide?: string[]
   url?: string
   tender_id?: string
   title?: string

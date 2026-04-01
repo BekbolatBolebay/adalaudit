@@ -212,6 +212,15 @@ const translations: Translations = {
   "scanner.analysis.suffix": { kz: "ТАЛДАУЫ", ru: "АНАЛИЗ" },
   "header.status.live": { kz: "БЕЛСЕНДІ", ru: "В СЕТИ" },
   "header.app_title": { kz: "ADAL AUDIT", ru: "ADAL AUDIT" },
+  
+  // New Tender Result Keys
+  "scanner.result.sector": { kz: "Экономика секторы", ru: "Сектор экономики" },
+  "scanner.result.winning_prob": { kz: "Ұту ықтималдығы", ru: "Вероятность выигрыша" },
+  "scanner.result.traps": { kz: "Жасырын тұзақтар (Traps)", ru: "Скрытые ловушки (Traps)" },
+  "scanner.result.submission_guide": { kz: "Тапсыру бойынша нұсқаулық", ru: "Инструкция по подаче" },
+  "scanner.result.winning_prob.high": { kz: "ЖОҒАРЫ", ru: "ВЫСОКАЯ" },
+  "scanner.result.winning_prob.med": { kz: "ОРТАША", ru: "СРЕДНЯЯ" },
+  "scanner.result.winning_prob.low": { kz: "ТӨМЕН", ru: "НИЗКАЯ" },
 }
 
 type I18nContextType = {

@@ -12,6 +12,10 @@ import {
   TrendingUp,
   Terminal,
   Search,
+  PieChart,
+  Trophy,
+  ShieldAlert,
+  ListChecks,
 } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
@@ -404,24 +408,120 @@ export function ForensicScanner({
                   </div>
                 ))}
               </div>
-
-              {/* Metadata Indicators */}
-              <div className="grid grid-cols-2 gap-3 px-1">
-                {[
-                  { icon: Search, label: "scanner.meta.location", value: analysisResult.metadata.location },
-                  { icon: FileText, label: "scanner.meta.payment", value: analysisResult.metadata.payment }
-                ].map((item, i) => (
-                  <div key={i} className="flex flex-col gap-1 p-2 rounded-lg border border-white/5 bg-white/[0.02]">
-                    <div className="flex items-center gap-1.5 opacity-40">
-                      <item.icon className="h-3 w-3" />
-                      <span className="text-[9px] uppercase font-bold tracking-tighter">{t(item.label)}</span>
-                    </div>
-                    <span className="text-[10px] font-medium truncate text-white/60">{item.value}</span>
-                  </div>
-                ))}
-              </div>
             </div>
           )}
+
+          {/* NEW: TENDER ANALYSIS SEGMENTS */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             {/* Sector & Winning Prob */}
+             <div className="flex flex-col gap-4">
+                {/* Sector Card */}
+                <div className="rounded-xl border border-border bg-card/50 p-4 flex items-center gap-4 group hover:border-primary/40 transition-colors">
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                    <PieChart className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{t("scanner.result.sector")}</p>
+                    <p className="text-sm font-semibold text-foreground">{analysisResult.sector || "Прочее"}</p>
+                  </div>
+                </div>
+
+                {/* Winning Probability Card */}
+                <div className="rounded-xl border border-border bg-card/50 p-4 flex flex-col gap-3 group hover:border-primary/40 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-lg bg-yellow-500/10 flex items-center justify-center text-yellow-500">
+                        <Trophy className="h-4 w-4" />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{t("scanner.result.winning_prob")}</p>
+                    </div>
+                    <Badge variant="outline" className={cn(
+                      "text-[9px] font-bold",
+                      (analysisResult.winning_probability || 0) > 70 ? "border-green-500/50 text-green-500" :
+                      (analysisResult.winning_probability || 0) > 40 ? "border-yellow-500/50 text-yellow-500" :
+                      "border-red-500/50 text-red-500"
+                    )}>
+                      {(analysisResult.winning_probability || 0) > 70 ? t("scanner.result.winning_prob.high") :
+                       (analysisResult.winning_probability || 0) > 40 ? t("scanner.result.winning_prob.med") :
+                       t("scanner.result.winning_prob.low")}
+                    </Badge>
+                  </div>
+                  <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                    <div 
+                      className={cn(
+                        "h-full transition-all duration-1000",
+                        (analysisResult.winning_probability || 0) > 70 ? "bg-green-500" :
+                        (analysisResult.winning_probability || 0) > 40 ? "bg-yellow-500" :
+                        "bg-red-500"
+                      )}
+                      style={{ width: `${analysisResult.winning_probability || 0}%` }}
+                    />
+                  </div>
+                  <p className="text-[10px] text-right font-mono text-muted-foreground">{analysisResult.winning_probability || 0}%</p>
+                </div>
+             </div>
+
+             {/* Hidden Traps */}
+             <div className="rounded-xl border border-border bg-card/50 p-4 flex flex-col gap-3 group hover:border-primary/40 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-destructive/10 flex items-center justify-center text-destructive">
+                    <ShieldAlert className="h-4 w-4" />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{t("scanner.result.traps")}</p>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {analysisResult.hidden_traps && analysisResult.hidden_traps.length > 0 ? (
+                    analysisResult.hidden_traps.map((trap, i) => (
+                      <div key={i} className="text-[11px] flex items-center gap-2 text-foreground/80 bg-destructive/5 border border-destructive/10 px-2 py-1.5 rounded-md">
+                        <div className="h-1 w-1 rounded-full bg-destructive shrink-0" />
+                        {trap}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-[11px] text-muted-foreground italic px-2">Жасырын тұзақтар анықталмады</p>
+                  )}
+                </div>
+             </div>
+          </div>
+
+          {/* Submission Roadmap */}
+          <div className="rounded-xl border border-primary/20 bg-primary/[0.02] p-5 flex flex-col gap-4">
+             <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                  <ListChecks className="h-4 w-4" />
+                </div>
+                <p className="text-[11px] text-primary uppercase font-bold tracking-widest">{t("scanner.result.submission_guide")}</p>
+             </div>
+             <div className="flex flex-col gap-3">
+                {(analysisResult.submission_guide || [
+                  "Тендерлік құжаттаманы мұқият зерттеңіз.",
+                  "Техникалық ерекшелікке сәйкестігін тексеріңіз.",
+                ]).map((step, i) => (
+                  <div key={i} className="flex gap-3 group">
+                    <div className="h-5 w-5 rounded-full border border-primary/30 flex items-center justify-center text-[10px] font-bold text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors shrink-0">
+                      {i + 1}
+                    </div>
+                    <p className="text-xs text-foreground/70 group-hover:text-foreground transition-colors">{step}</p>
+                  </div>
+                ))}
+             </div>
+          </div>
+
+          {/* Metadata Indicators */}
+          <div className="grid grid-cols-2 gap-3 px-1">
+            {[
+              { icon: Search, label: "scanner.meta.location", value: analysisResult.metadata?.location },
+              { icon: FileText, label: "scanner.meta.payment", value: analysisResult.metadata?.payment }
+            ].map((item, i) => (
+              <div key={i} className="flex flex-col gap-1 p-2 rounded-lg border border-white/5 bg-white/[0.02]">
+                <div className="flex items-center gap-1.5 opacity-40">
+                  <item.icon className="h-3 w-3" />
+                  <span className="text-[9px] uppercase font-bold tracking-tighter">{t(item.label)}</span>
+                </div>
+                <span className="text-[10px] font-medium truncate text-white/60">{item.value}</span>
+              </div>
+            ))}
+          </div>
 
           {phase === "complete" && !hasMarketData && (
             <div className="mt-2 px-2 w-full flex justify-center">

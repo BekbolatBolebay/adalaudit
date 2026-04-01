@@ -115,19 +115,45 @@ export async function POST(req: Request) {
     }
 
     logs.push("Генерация финального форензик-отчета...");
+    
+    // 4. CALL LOCAL ML SERVICE
+    let mlResults: any = {};
+    try {
+      const formData = new FormData();
+      formData.append("fileName", "goszakup_page.html");
+      formData.append("extractedText", html.substring(0, 5000));
+      
+      const mlResponse = await fetch("http://localhost:8000/analyze", {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (mlResponse.ok) {
+        mlResults = await mlResponse.json();
+        logs.push("✅ Локальді ML-сервис қосылды: Сектор және қауіптер анықталды.");
+      }
+    } catch (e) {
+      console.error("[API] ML Service unavailable:", e);
+      logs.push("⚠️ Локальді ML-сервис қолжетімсіз. Базалық талдау қолданылады.");
+    }
+
     logs.push("Анализ завершен.");
 
     const result: AnalysisResult = {
-      risk_score: violations.length > 0 ? (violations.length > 1 ? 92 : 68) : 12,
-      violations,
-      summary_ru: violations.length > 0 
+      risk_score: mlResults.risk_score || (violations.length > 0 ? (violations.length > 1 ? 92 : 68) : 12),
+      violations: [...violations, ...(mlResults.violations || [])],
+      summary_ru: mlResults.summary_ru || (violations.length > 0 
         ? "Выявлены признаки потенциальных нарушений. Требуется детальное расследование."
-        : "Нарушений не выявлено. Лот соответствует стандартам прозрачности.",
-      summary_kz: violations.length > 0
+        : "Нарушений не выявлено. Лот соответствует стандартам прозрачности."),
+      summary_kz: mlResults.summary_kz || (violations.length > 0
         ? "Ықтимал бұзушылық белгілері анықталды. Толық тергеу қажет."
-        : "Бұзушылық анықталмады. Лот ашықтық стандарттарына сәйкес келеді.",
+        : "Бұзушылық анықталмады. Лот ашықтық стандарттарына сәйкес келеді."),
       detected_tender_price: detectedPrice,
       primary_product_name: cleanTitle,
+      sector: mlResults.sector,
+      winning_probability: mlResults.winning_probability,
+      hidden_traps: mlResults.hidden_traps,
+      submission_guide: mlResults.submission_guide,
       original_text: html.substring(0, 1000),
       url,
       tender_id: url.split("/").pop() || "UNKNOWN",

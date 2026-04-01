@@ -35,6 +35,7 @@ export const viewport: Viewport = {
 }
 
 import { ThemeProvider } from "@/components/theme-provider"
+import { ChatAssistant } from "@/components/chat-assistant"
 
 export default function RootLayout({
   children,
@@ -51,6 +52,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <ChatAssistant />
           <Analytics />
         </ThemeProvider>
       </body>
