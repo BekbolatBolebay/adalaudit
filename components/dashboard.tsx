@@ -12,6 +12,8 @@ import { ForensicChat } from "./forensic-chat"
 import { HistoryView } from "./history-view"
 import { LegalView } from "./legal-view"
 import { SettingsView } from "./settings-view"
+import { CompanySearch } from "./company-search"
+import { TenderStarterMap } from "./tender-starter-map"
 import { BottomNav } from "./bottom-nav"
 import { MarketPriceCard } from "./market-price-card"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -25,7 +27,7 @@ import { Badge } from "@/components/ui/badge"
 import { motion, AnimatePresence } from "framer-motion"
 import type { AnalysisResult, TranslationResult, ProtocolData } from "@/lib/types"
 
-type View = "scanner" | "cases" | "network" | "legal" | "settings" | "tender"
+type View = "scanner" | "cases" | "network" | "legal" | "settings" | "tender" | "business" | "starter"
 
 export function Dashboard() {
   const { t } = useI18n()
@@ -35,20 +37,10 @@ export function Dashboard() {
   const [cachedAnalysis, setCachedAnalysis] = useState<any>(null)
   const [cachedTranslation, setCachedTranslation] = useState<any>(null)
   const [isFromCache, setIsFromCache] = useState(false)
-  const [isDemoModeEnabled, setIsDemoModeEnabled] = useState(false)
   const [showComparison, setShowComparison] = useState(false)
   const [marketAnalysis, setMarketAnalysis] = useState<any>(null)
   const [isCheckingPrices, setIsCheckingPrices] = useState(false)
 
-  // Sync demo mode from local storage
-  useEffect(() => {
-    const checkDemo = () => {
-      setIsDemoModeEnabled(localStorage.getItem("demo_mode") === "true")
-    }
-    checkDemo()
-    window.addEventListener("storage", checkDemo)
-    return () => window.removeEventListener("storage", checkDemo)
-  }, [])
 
   // Local ML state replacement for useObject
   const [analysisObject, setAnalysisObject] = useState<any>(null)
@@ -103,8 +95,6 @@ export function Dashboard() {
         }
       }
 
-      // Check for Demo Mode from localStorage
-      const isDemoMode = localStorage.getItem("demo_mode") === "true"
 
       // Start Local ML analysis/translation
       console.log("[Dashboard] Calling local API routes...");
@@ -118,11 +108,11 @@ export function Dashboard() {
         const [anaRes, traRes] = await Promise.all([
           fetch("/api/analyze", {
             method: "POST",
-            body: JSON.stringify({ ...payload, isDemoMode })
+            body: JSON.stringify({ ...payload })
           }).then(r => r.json()),
           fetch("/api/translate", {
             method: "POST",
-            body: JSON.stringify({ ...payload, isDemoMode })
+            body: JSON.stringify({ ...payload })
           }).then(r => r.json())
         ])
 
@@ -323,12 +313,6 @@ export function Dashboard() {
           </div>
         )}
 
-        {isDemoModeEnabled && (
-          <div className="mx-6 mt-4 p-3 rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-500 text-xs flex items-center gap-2 animate-pulse font-medium">
-            <Bot className="h-4 w-4" />
-            {t("settings.demo_mode")}: {t("settings.demo_mode.sub")}
-          </div>
-        )}
 
         <main className="flex-1 overflow-hidden flex">
           <div className="flex-1 overflow-hidden">
@@ -482,6 +466,8 @@ export function Dashboard() {
                   {activeView === "cases" && <HistoryView onItemClick={handleHistoryLoad} />}
                   {activeView === "tender" && <TenderView />}
                   {activeView === "network" && <NetworkView />}
+                  {activeView === "business" && <CompanySearch />}
+                  {activeView === "starter" && <TenderStarterMap />}
                   {activeView === "legal" && <LegalView />}
                   {activeView === "settings" && <SettingsView />}
                 </div>

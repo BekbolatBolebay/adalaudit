@@ -32,19 +32,13 @@ export async function POST(req: Request) {
     const paymentMatch = html.match(/(Аванс|Предоплата|Төлем шарттары).*?<td>(.*?)<\/td>/i);
     const reqsMatch = html.match(/(Требования|Талаптар).*?<td>(.*?)<\/td>/i);
 
+    const priceMatch = html.match(/(?:Бюджет|Сумма|Цена|Құны|Баға|Total|Amount)[:\s]*([\d\s,]+)\s*(?:тенге|тг|KZT|₸)/i) || html.match(/([\d\s,]{5,12})\s*(?:тенге|тг|KZT|₸)/i);
+    const detectedPrice = priceMatch ? parseFloat(priceMatch[1].replace(/\s/g, '').replace(',', '.')) : 0;
+
     const location = locationMatch ? locationMatch[2].replace(/<\/?td>/g, "").trim() : "Не указано";
     const payment = paymentMatch ? paymentMatch[2].replace(/<\/?td>/g, "").trim() : "Стандартные условия";
     const requirements = reqsMatch ? reqsMatch[2].replace(/<\/?td>/g, "").trim() : "Общие требования";
 
-    const priceRegex = /<td>([\d\s,]+\.\d{2})<\/td>/g;
-    const priceMatches = Array.from(html.matchAll(priceRegex));
-    let detectedPrice = 0;
-    if (priceMatches.length > 0) {
-      for (const m of priceMatches) {
-        const val = parseFloat(m[1].replace(/\s/g, "").replace(",", "."));
-        if (val > 1000) { detectedPrice = val; break; }
-      }
-    }
 
     const violations: any[] = [];
     const logs: string[] = [
@@ -57,52 +51,75 @@ export async function POST(req: Request) {
     // --- BULK DOCUMENT EXTRACTION ---
     logs.push("Запуск глубокого поиска технической документации...");
     
-    // Pattern 1: Direct href links
-    const hrefLinks = Array.from(html.matchAll(/href="([^"]+?\.(?:pdf|docx|doc|xlsx?))"/gi)).map(m => m[1]);
+    // Pattern 1: Direct href links (inclusive)
+    const hrefLinks = Array.from(html.matchAll(/href="([^"]+?\.(?:pdf|docx|doc|xlsx?|zip|rar))"/gi)).map(m => m[1]);
     
-    // Pattern 2: Hidden Discovery (JS patterns like 'downloadFile(12345)')
-    const jsDocPatterns = Array.from(html.matchAll(/onclick=".*?(?:download|view|open)(?:File|Doc|Attachment)?\((\d+)\).*?"/gi)).map(m => `/utender/download/${m[1]}`);
+    // Pattern 2: Hidden Discovery (JS patterns)
+    const jsDocPatterns = Array.from(html.matchAll(/onclick=".*?(?:download|view|open|get)(?:File|Doc|Attachment|Electronic)?\((\d+)\).*?"/gi)).map(m => `/utender/download/${m[1]}`);
     
-    const allDocLinks = [...new Set([...hrefLinks, ...jsDocPatterns])];
+    // Pattern 3: Goszakup specific common paths
+    const commonPathPatterns = Array.from(html.matchAll(/data-id="(\d+)"/gi)).map(m => `/utender/download/${m[1]}`);
+    
+    const allDocLinks = [...new Set([...hrefLinks, ...jsDocPatterns, ...commonPathPatterns])];
     logs.push(`Обнаружено потенциальных документов: ${allDocLinks.length}`);
     if (jsDocPatterns.length > 0) logs.push(`🔍 Обнаружено ${jsDocPatterns.length} скрытых ссылок в JavaScript-кнопках.`);
 
     let combinedTraps: string[] = [];
     let mlResults: any = { risk_score: 12, violations: [], summary_ru: "", summary_kz: "", sector: "Не определено", winning_probability: 75, hidden_traps: [], submission_guide: [] };
-    let totalRiskCount = 0;
+    
+    const prioritizedDocs = allDocLinks.filter(l => /spec|tech|passport|dogovor|contract|teh|spravka|tehpec|plan|price/i.test(l) || allDocLinks.length < 5).slice(0, 3);
 
-    const prioritizedDocs = allDocLinks.filter(l => /spec|tech|passport|dogovor|contract|teh|spravka/i.test(l) || allDocLinks.length < 5).slice(0, 3);
-
-    for (let i = 0; i < prioritizedDocs.length; i++) {
-       let docUrl = prioritizedDocs[i];
-       if (docUrl.startsWith("/")) docUrl = `${new URL(url).origin}${docUrl}`;
-       const docName = docUrl.split("/").pop() || `document_${i+1}`;
-       
-       logs.push(`[${i+1}/${prioritizedDocs.length}] Аудит документа: ${docName}...`);
-       
-       try {
-          const docRes = await fetch(docUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
-          if (docRes.ok) {
-             const buffer = await docRes.arrayBuffer();
-             const docForm = new FormData();
-             docForm.append("fileName", docName);
-             docForm.append("fileData", Buffer.from(buffer).toString("base64"));
-             
-             const mlRes = await fetch("http://localhost:8000/analyze", { method: "POST", body: docForm });
-             if (mlRes.ok) {
-                const data = await mlRes.json();
-                mlResults.risk_score = Math.max(mlResults.risk_score, data.risk_score);
-                if (data.violations) mlResults.violations.push(...data.violations);
-                if (data.hidden_traps) combinedTraps.push(...data.hidden_traps);
-                mlResults.sector = data.sector || mlResults.sector;
-                mlResults.financial_guide = data.financial_guide;
-                mlResults.participation_map = data.participation_map;
-                mlResults.winning_probability = data.winning_probability;
-                logs.push(`✅ ${docName}: Успешно. Найдено рисков: ${data.violations?.length || 0}`);
+    if (prioritizedDocs.length > 0) {
+       for (let i = 0; i < prioritizedDocs.length; i++) {
+          let docUrl = prioritizedDocs[i];
+          if (docUrl.startsWith("/")) docUrl = `${new URL(url).origin}${docUrl}`;
+          const docName = docUrl.split("/").pop() || `document_${i+1}`;
+          
+          logs.push(`[${i+1}/${prioritizedDocs.length}] Аудит документа: ${docName}...`);
+          
+          try {
+             const docRes = await fetch(docUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
+             if (docRes.ok) {
+                const buffer = await docRes.arrayBuffer();
+                const docForm = new FormData();
+                docForm.append("fileName", docName);
+                docForm.append("fileData", Buffer.from(buffer).toString("base64"));
+                
+                const mlRes = await fetch("http://localhost:8000/analyze", { method: "POST", body: docForm });
+                if (mlRes.ok) {
+                   const data = await mlRes.json();
+                   mlResults.risk_score = Math.max(mlResults.risk_score, data.risk_score);
+                   if (data.violations) mlResults.violations.push(...data.violations);
+                   if (data.hidden_traps) combinedTraps.push(...data.hidden_traps);
+                   mlResults.sector = data.sector || mlResults.sector;
+                   mlResults.financial_guide = data.financial_guide;
+                   mlResults.participation_map = data.participation_map;
+                   mlResults.winning_probability = data.winning_probability;
+                   mlResults.submission_guide = data.submission_guide;
+                   logs.push(`✅ ${docName}: Успешно. Найдено рисков: ${data.violations?.length || 0}`);
+                }
              }
+          } catch (e) {
+             logs.push(`⚠️ Ошибка загрузки ${docName}.`);
+          }
+       }
+    } else {
+       // --- META-ANALYSIS FALLBACK (REAL DATA, NO MOCKS) ---
+       logs.push("🔍 Құжаттарға қолжетімділік шектелген. Мета-деректер бойынша форензик-талдау жүргізілуде...");
+       try {
+          const metaText = `Лот: ${cleanTitle}\nБюджет: ${detectedPrice} KZT\nОрны: ${location}\nТалаптар: ${requirements}\nТөлем: ${payment}`;
+          const metaForm = new FormData();
+          metaForm.append("fileName", "page_metadata.txt");
+          metaForm.append("extractedText", metaText);
+          
+          const mlRes = await fetch("http://localhost:8000/analyze", { method: "POST", body: metaForm });
+          if (mlRes.ok) {
+             const data = await mlRes.json();
+             mlResults = { ...mlResults, ...data };
+             logs.push("✅ Мета-талдау аяқталды. Тәуекелдер мен ұсыныстар дайындалды.");
           }
        } catch (e) {
-          logs.push(`⚠️ Ошибка загрузки ${docName}.`);
+          logs.push("⚠️ Мета-талдау кезінде қате кетті.");
        }
     }
 

@@ -83,3 +83,26 @@ export type ProtocolData = {
   legal_ref_kz: string
   investigator: string
 }
+export type CompanyIntelligence = {
+  bin: string
+  name_ru: string
+  name_kz: string
+  registration_date: string
+  risk_score: number
+  risk_level: "low" | "medium" | "high" | "critical"
+  staff_count: number
+  tax_history_score: number // 0-100
+  affiliations: {
+    name: string
+    role: string
+    bin?: string
+  }[]
+  red_flags: {
+    type: string
+    message_ru: string
+    message_kz: string
+    severity: "high" | "critical"
+  }[]
+  summary_ru: string
+  summary_kz: string
+}

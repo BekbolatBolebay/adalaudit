@@ -19,6 +19,8 @@ const translations: Translations = {
   "nav.scanner": { kz: "Сканер", ru: "Сканер" },
   "nav.cases": { kz: "Іс тарихы", ru: "История дел" },
   "nav.network": { kz: "Байланыс талдау", ru: "Анализ связей" },
+  "nav.business": { kz: "Бизнес интеллект", ru: "Бизнес интеллект" },
+  "nav.starter": { kz: "Старт-аудит", ru: "Стартап-аудит" },
   "nav.legal": { kz: "Заң базасы", ru: "Правовая база" },
   "nav.settings": { kz: "Баптаулар", ru: "Настройки" },
 
@@ -221,6 +223,25 @@ const translations: Translations = {
   "scanner.result.winning_prob.high": { kz: "ЖОҒАРЫ", ru: "ВЫСОКАЯ" },
   "scanner.result.winning_prob.med": { kz: "ОРТАША", ru: "СРЕДНЯЯ" },
   "scanner.result.winning_prob.low": { kz: "ТӨМЕН", ru: "НИЗКАЯ" },
+  
+  "business.network.visual": { kz: "Байланыстарды визуалдау", ru: "Визуализация связей" },
+
+  // Tender Starter Map
+  "starter.title": { kz: "Тендерлік Старт-Карта", ru: "Тендерная Старт-Карта" },
+  "starter.desc": { kz: "Жаңадан бастаушыларға арналған финансовый трекер мен қадамдық нұсқаулық.", ru: "Финансовый трекер и пошаговое руководство для начинающих." },
+  "starter.calc.title": { kz: "Таза пайда калькуляторы", ru: "Калькулятор чистой прибыли" },
+  "starter.calc.amount": { kz: "Тендер сомасы", ru: "Сумма тендера" },
+  "starter.calc.cost": { kz: "Тауар/Жұмыс құны", ru: "Себестоимость товара/услуг" },
+  "starter.calc.delivery": { kz: "Жеткізу шығындары", ru: "Расходы на доставку" },
+  "starter.calc.tax": { kz: "Салық (3%)", ru: "Налог (3%)" },
+  "starter.calc.profit": { kz: "Болжамды таза пайда", ru: "Ожидаемая чистая прибыль" },
+  "starter.calc.roi": { kz: "Инвестиция қайтарымы (ROI)", ru: "Возврат инвестиций (ROI)" },
+  "starter.roadmap.title": { kz: "Сәттілік жол картасы", ru: "Дорожная карта успеха" },
+  "starter.step1": { kz: "Дұрыс тендер таңдау", ru: "Выбор правильного тендера" },
+  "starter.step2": { kz: "Өтінім құжаттарын жинау", ru: "Сбор документов заявки" },
+  "starter.step3": { kz: "Кепілдік жарнаны төлеу", ru: "Оплата гарантийного взноса" },
+  "starter.step4": { kz: "Келісімшартқа қол қою", ru: "Подписание договора" },
+  "starter.step5": { kz: "Тауарды/Қызметті жеткізу", ru: "Поставка товара/услуги" },
 }
 
 type I18nContextType = {

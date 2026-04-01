@@ -61,21 +61,6 @@ export function SettingsView() {
                             </div>
                             <Switch defaultChecked />
                         </div>
-                        <div className="flex items-center justify-between p-4 rounded-lg bg-primary/5 border border-primary/20">
-                            <div className="space-y-0.5">
-                                <Label className="text-sm font-bold text-primary">{t("settings.offline_mode")}</Label>
-                                <p className="text-[10px] text-muted-foreground">{t("settings.offline_mode.sub")}</p>
-                            </div>
-                            <Switch
-                                checked={typeof window !== 'undefined' && localStorage.getItem("demo_mode") === "true"}
-                                onCheckedChange={(checked) => {
-                                    localStorage.setItem("demo_mode", checked.toString())
-                                    // Force a small delay then reload to apply globally OR just trigger a storage event
-                                    window.dispatchEvent(new Event('storage'))
-                                    window.location.reload() // Simplest way to ensure all hooks/APIs get the new state
-                                }}
-                            />
-                        </div>
                     </div>
                 </div>
 

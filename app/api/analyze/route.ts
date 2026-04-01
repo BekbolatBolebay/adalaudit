@@ -37,11 +37,6 @@ export async function POST(req: Request) {
     fileName = body.fileName || fileName
     console.log(`[API Analyze] Starting for ${fileName}, mediaType: ${mediaType}, demo: ${isDemoMode}`)
 
-    if (isDemoMode === true) {
-      console.log(`[API Analyze] Manual Demo Mode active for ${fileName}`)
-      const { getMockAnalysis } = await import("@/lib/demo-data")
-      return Response.json(getMockAnalysis(fileName || "document.pdf"))
-    }
 
     if (!fileData) {
       console.warn("[API Analyze] No file data provided")
@@ -107,9 +102,7 @@ export async function POST(req: Request) {
       return Response.json(mlData)
 
     } catch (mlError) {
-      console.error("[API Analyze] Local ML Service failed, falling back to Demo Mode:", mlError)
-      const { getMockAnalysis } = await import("@/lib/demo-data")
-      return Response.json(getMockAnalysis(fileName))
+      throw mlError;
     }
 
   } catch (error: any) {
@@ -126,12 +119,6 @@ export async function POST(req: Request) {
       errorMessage.toLowerCase().includes("getaddrinfo") ||
       errorMessage.toLowerCase().includes("connect");
 
-    if (isQuotaError || process.env.DEMO_MODE === "true") {
-      console.log(`[API Analyze] Triggering seamless manual demo fallback for ${fileName}`)
-
-      const { getMockAnalysis } = await import("@/lib/demo-data");
-      return Response.json(getMockAnalysis(fileName));
-    }
 
     return Response.json(
       { error: errorMessage },

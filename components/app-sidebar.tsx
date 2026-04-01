@@ -1,6 +1,6 @@
 "use client"
 
-import { ScanSearch, History, BookOpen, Settings, Shield, Share2, Link2 } from "lucide-react"
+import { ScanSearch, History, BookOpen, Settings, Shield, Share2, Link2, Building2, Flag } from "lucide-react"
 import { useI18n } from "@/lib/i18n"
 import { cn } from "@/lib/utils"
 
@@ -10,6 +10,8 @@ const navItems = [
   { key: "nav.tender_audit", icon: Link2, id: "tender" },
   { key: "nav.cases", icon: History, id: "cases" },
   { key: "nav.network", icon: Share2, id: "network" },
+  { key: "nav.business", icon: Building2, id: "business" },
+  { key: "nav.starter", icon: Flag, id: "starter" },
   { key: "nav.legal", icon: BookOpen, id: "legal" },
   { key: "nav.settings", icon: Settings, id: "settings" },
 ] as const
@@ -20,8 +22,8 @@ export function AppSidebar({
   activeView,
   onNavigate,
 }: {
-  activeView: ActiveView
-  onNavigate: (view: ActiveView) => void
+  activeView: string
+  onNavigate: (view: any) => void
 }) {
   const { t } = useI18n()
 

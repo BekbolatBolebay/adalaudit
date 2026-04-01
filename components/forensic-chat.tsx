@@ -234,12 +234,12 @@ export function ForensicChat({ context, isVisible, onClose, isEmbedded = false }
                                     </div>
                                 </div>
                                 <h3 className="text-lg font-bold text-foreground tracking-tight">
-                                    {locale === "kz" ? "Инспектор дайын" : "Инспектор готов"}
+                                    {locale === "kz" ? "Адал Ассистент дайын" : "Адал Ассистент готов"}
                                 </h3>
                                 <p className="text-xs text-muted-foreground mt-2 max-w-[240px] leading-relaxed">
                                     {locale === "kz" 
-                                        ? "Тендерлік құжаттама бойынша кәсіби сараптамалық сұрақтар қойыңыз." 
-                                        : "Задайте профессиональные вопросы по тендерной документации."}
+                                        ? "Сәлем! Мен сіздің тендерлік көмекшіңізбін. Осы лот бойынша кез келген сұрақ қойыңыз. Мысалы: 'Қандай құжаттар керек?' немесе 'Риск қай жерде?'" 
+                                        : "Привет! Я ваш тендерный ассистент. Задайте любой вопрос по этому лоту. Например: 'Какие документы нужны?' или 'Где скрыт риск?'"}
                                 </p>
                                 
                                 <div className="grid grid-cols-1 gap-2.5 w-full mt-10">

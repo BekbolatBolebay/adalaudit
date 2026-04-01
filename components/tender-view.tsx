@@ -20,6 +20,13 @@ export function TenderView() {
   const [isGeneratingProtocol, setIsGeneratingProtocol] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeLogs, setActiveLogs] = useState<string[]>([])
+  const [checkedSteps, setCheckedSteps] = useState<number[]>([])
+
+  const toggleStep = (idx: number) => {
+    setCheckedSteps(prev => 
+      prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx]
+    )
+  }
 
   const handleAnalyze = async () => {
     if (!url) return
@@ -28,6 +35,7 @@ export function TenderView() {
     setResult(null)
     setProtocolData(null)
     setActiveLogs([])
+    setCheckedSteps([])
 
     try {
       const response = await fetch("/api/analyze-url", {
@@ -238,7 +246,10 @@ export function TenderView() {
                    <div className="p-6 rounded-2xl border border-primary/20 bg-primary/5 space-y-4">
                       <div className="flex items-center justify-between">
                          <Coins className="h-4 w-4 text-primary" />
-                         <span className="text-[9px] font-mono tracking-widest uppercase font-black text-primary/40">Money (Қаржы)</span>
+                         <span className="text-[9px] font-mono tracking-widest uppercase font-black text-primary/40 flex items-center gap-1">
+                            Money (Қаржы)
+                            <span title={locale === 'kz' ? 'Тендерге қатысу үшін қажетті минималды қаражат' : 'Минимальные средства, необходимые для участия'} className="cursor-help opacity-50 hover:opacity-100">ⓘ</span>
+                         </span>
                       </div>
                       <div className="space-y-2">
                          <div className="flex flex-col">
@@ -256,7 +267,10 @@ export function TenderView() {
                    <div className="p-6 rounded-2xl border border-blue-500/20 bg-blue-500/5 space-y-4">
                       <div className="flex items-center justify-between">
                          <UserCheck className="h-4 w-4 text-blue-400" />
-                         <span className="text-[9px] font-mono tracking-widest uppercase font-black text-blue-400/40">Capabilities (Мамандар)</span>
+                         <span className="text-[9px] font-mono tracking-widest uppercase font-black text-blue-400/40 flex items-center gap-1">
+                            Capabilities (Мамандар)
+                            <span title={locale === 'kz' ? 'Бұл тендерге қатысу үшін қажетті біліктілік пен тәжірибе' : 'Квалификация и опыт, необходимые для участия'} className="cursor-help opacity-50 hover:opacity-100">ⓘ</span>
+                         </span>
                       </div>
                       <div className="space-y-1">
                          {result.participation_map?.required_capabilities?.map((cap: string, i: number) => (
@@ -272,7 +286,10 @@ export function TenderView() {
                    <div className="p-6 rounded-2xl border border-orange-500/20 bg-orange-500/5 space-y-4">
                       <div className="flex items-center justify-between">
                          <FileText className="h-4 w-4 text-orange-400" />
-                         <span className="text-[9px] font-mono tracking-widest uppercase font-black text-orange-400/40">Documents (Құжаттар)</span>
+                         <span className="text-[9px] font-mono tracking-widest uppercase font-black text-orange-400/40 flex items-center gap-1">
+                            Documents (Құжаттар)
+                            <span title={locale === 'kz' ? 'Өтінім кезінде жүктелуі тиіс маңызды құжаттар тізімі' : 'Список критически важных документов для подачи заявки'} className="cursor-help opacity-50 hover:opacity-100">ⓘ</span>
+                         </span>
                       </div>
                       <div className="space-y-1">
                          {result.participation_map?.critical_docs?.map((doc: string, i: number) => (
@@ -302,27 +319,50 @@ export function TenderView() {
 
                 {/* NEW: FULL CHRONOLOGICAL ROADMAP (Қадамдық жоспар) */}
                 <div className="p-8 rounded-3xl border border-primary/20 bg-primary/5 space-y-6">
-                   <div className="flex items-center gap-3">
-                      <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center text-[10px] font-black text-black">1</div>
-                      <span className="text-[10px] font-mono tracking-[0.4em] uppercase font-black text-primary/60">Execution Roadmap (Қадамдық жоспар)</span>
-                   </div>
-                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      {result.submission_guide?.map((step: string, i: number) => (
-                        <div key={i} className="flex gap-4 p-4 rounded-xl bg-black/20 border border-white/5">
-                           <div className="text-primary font-mono text-xs font-bold pt-0.5">{i+1}.</div>
-                           <p className="text-[11px] text-white/80 leading-relaxed font-medium">{step}</p>
-                        </div>
-                      ))}
-                   </div>
-                </div>
+                    <div className="flex items-center justify-between">
+                       <div className="flex items-center gap-3">
+                          <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center text-[10px] font-black text-black">1</div>
+                          <span className="text-[10px] font-mono tracking-[0.4em] uppercase font-black text-primary/60">Execution Roadmap (Қадамдық жоспар)</span>
+                       </div>
+                       <span className="text-[10px] font-bold text-primary/40 uppercase">{checkedSteps.length} / {result.submission_guide?.length} Орындалды</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                       {result.submission_guide?.map((step: string, i: number) => (
+                         <div 
+                           key={i} 
+                           onClick={() => toggleStep(i)}
+                           className={cn(
+                             "flex gap-4 p-5 rounded-2xl border transition-all cursor-pointer group/step",
+                             checkedSteps.includes(i) 
+                               ? "bg-primary/10 border-primary/30 opacity-60" 
+                               : "bg-black/40 border-white/5 hover:border-primary/40 hover:bg-black/60 shadow-lg"
+                           )}
+                         >
+                            <div className={cn(
+                               "h-5 w-5 rounded-full border flex items-center justify-center shrink-0 transition-colors",
+                               checkedSteps.includes(i) ? "bg-primary border-primary text-black" : "border-white/20 group-hover/step:border-primary/60"
+                            )}>
+                               {checkedSteps.includes(i) ? <CheckCircle2 className="h-3 w-3" /> : <span className="text-[9px] font-bold">{i+1}</span>}
+                            </div>
+                            <p className={cn(
+                               "text-[11px] leading-relaxed font-medium transition-all",
+                               checkedSteps.includes(i) ? "text-white/40 line-through" : "text-white/90"
+                            )}>{step}</p>
+                         </div>
+                       ))}
+                    </div>
+                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                   <div className="relative group p-8 rounded-3xl border border-white/5 bg-white/[0.02] overflow-hidden">
+                      <div className="relative group p-8 rounded-3xl border border-white/5 bg-white/[0.02] overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       <div className="relative space-y-6">
                         <div className="flex items-center gap-3">
                            <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                           <span className="text-[10px] font-mono tracking-[0.4em] uppercase font-black text-white/40">{t("scanner.risk")}</span>
+                         <span className="text-[10px] font-mono tracking-[0.4em] uppercase font-black text-white/40 flex items-center gap-1">
+                            {t("scanner.risk")}
+                            <span title={locale === 'kz' ? 'Коррупциялық немесе техникалық бұзушылықтың болу ықтималдығы' : 'Вероятность наличия коррупционных или технических нарушений'} className="cursor-help opacity-50 hover:opacity-100">ⓘ</span>
+                         </span>
                         </div>
                         <div className="flex items-end gap-6">
                            <motion.div 

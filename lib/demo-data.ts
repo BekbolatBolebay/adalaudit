@@ -1,4 +1,4 @@
-import { AnalysisResult, TranslationResult, ProtocolData } from "./types"
+import { AnalysisResult, TranslationResult, ProtocolData, CompanyIntelligence } from "./types"
 
 const mockAnalysisResults = {
     danger: {
@@ -269,3 +269,57 @@ export const getNetworkMock = (bin: string) => {
     if (bin === "111111111111") return mockNetworkResults.clean;
     return mockNetworkResults.danger;
 };
+
+export const getCompanyIntelligence = (bin: string): CompanyIntelligence => {
+    const isNew = bin.startsWith("24") || bin.startsWith("23");
+    
+    if (isNew) {
+        return {
+            bin,
+            name_ru: "ТОО 'Smart Solutions 2024'",
+            name_kz: "'Smart Solutions 2024' ЖШС",
+            registration_date: "2024-01-15",
+            risk_score: 84,
+            risk_level: "high",
+            staff_count: 2,
+            tax_history_score: 15,
+            affiliations: [
+                { name: "Ахметов Б.С.", role: "Учредитель" },
+                { name: "ТОО 'Tech-Global'", role: "Аффилированная компания", bin: "150440001234" }
+            ],
+            red_flags: [
+                {
+                    type: "NEW_COMPANY",
+                    message_ru: "Компания зарегистрирована менее 6 месяцев назад",
+                    message_kz: "Компания 6 айдан аз уақыт бұрын тіркелген",
+                    severity: "high"
+                },
+                {
+                    type: "LOW_TAXES",
+                    message_ru: "Низкая налоговая нагрузка при участии в крупных тендерах",
+                    message_kz: "Ірі тендерлерге қатысу кезіндегі төмен салық жүктемесі",
+                    severity: "critical"
+                }
+            ],
+            summary_ru: "Высокий риск. Компания-новичок с минимальным штатом и отсутствием налоговой истории. Признаки 'фирмы-однодневки'.",
+            summary_kz: "Жоғары тәуекел. Штаты минималды және салық тарихы жоқ жаңа компания. «Бір күндік фирма» белгілері бар."
+        }
+    }
+
+    return {
+        bin,
+        name_ru: "АО 'Национальные Информационные Технологии'",
+        name_kz: "'Ұлттық Ақпараттық Технологиялар' АҚ",
+        registration_date: "2008-07-03",
+        risk_score: 8,
+        risk_level: "low",
+        staff_count: 1200,
+        tax_history_score: 99,
+        affiliations: [
+            { name: "Правительство РК", role: "Акционер" }
+        ],
+        red_flags: [],
+        summary_ru: "Надежный контрагент. Прозрачная история владения, стабильные налоговые отчисления и достаточный штат сотрудников.",
+        summary_kz: "Сенімді контрагент. Меншік тарихы ашық, тұрақты салық аударымдары және қызметкерлер саны жеткілікті."
+    }
+}
