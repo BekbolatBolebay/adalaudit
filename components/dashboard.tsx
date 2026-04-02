@@ -21,13 +21,14 @@ import { useI18n } from "@/lib/i18n"
 import { History, BookOpen, Settings, Bot, AlertTriangle, X, Share2, Search } from "lucide-react"
 import { NetworkView } from "./network-view"
 import { TenderView } from "@/components/tender-view"
+import { ParticipantAssistant } from "./participant-assistant"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { motion, AnimatePresence } from "framer-motion"
 import type { AnalysisResult, TranslationResult, ProtocolData } from "@/lib/types"
 
-type View = "scanner" | "cases" | "network" | "legal" | "settings" | "tender" | "business" | "starter"
+type View = "scanner" | "cases" | "network" | "legal" | "settings" | "tender" | "business" | "starter" | "assistant"
 
 export function Dashboard() {
   const { t } = useI18n()
@@ -468,6 +469,13 @@ export function Dashboard() {
                   {activeView === "network" && <NetworkView />}
                   {activeView === "business" && <CompanySearch />}
                   {activeView === "starter" && <TenderStarterMap />}
+                  {activeView === "assistant" && (
+                    <ParticipantAssistant 
+                      tenderAmount={(analysisObject || cachedAnalysis)?.detected_tender_price || 1000000} 
+                      tenderTitle={(analysisObject || cachedAnalysis)?.title}
+                      deadline={(analysisObject || cachedAnalysis)?.metadata?.deadline}
+                    />
+                  )}
                   {activeView === "legal" && <LegalView />}
                   {activeView === "settings" && <SettingsView />}
                 </div>

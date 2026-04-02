@@ -20,6 +20,7 @@ const translations: Translations = {
   "nav.cases": { kz: "Іс тарихы", ru: "История дел" },
   "nav.network": { kz: "Байланыс талдау", ru: "Анализ связей" },
   "nav.business": { kz: "Бизнес интеллект", ru: "Бизнес интеллект" },
+  "nav.assistant": { kz: "Көмекші", ru: "Ассистент" },
   "nav.starter": { kz: "Старт-аудит", ru: "Стартап-аудит" },
   "nav.legal": { kz: "Заң базасы", ru: "Правовая база" },
   "nav.settings": { kz: "Баптаулар", ru: "Настройки" },
@@ -242,6 +243,26 @@ const translations: Translations = {
   "starter.step3": { kz: "Кепілдік жарнаны төлеу", ru: "Оплата гарантийного взноса" },
   "starter.step4": { kz: "Келісімшартқа қол қою", ru: "Подписание договора" },
   "starter.step5": { kz: "Тауарды/Қызметті жеткізу", ru: "Поставка товара/услуги" },
+
+  // Participant Assistant
+  "assistant.title": { kz: "Қатысушы Көмекшісі", ru: "Ассистент Участника" },
+  "assistant.financials.title": { kz: "Қаржылық жоспар (Runway)", ru: "Финансовый план (Runway)" },
+  "assistant.financials.total": { kz: "Жалпы қажетті қаражат", ru: "Всего необходимо средств" },
+  "assistant.financials.bid_guarantee": { kz: "Өтінімді қамтамасыз ету (1%)", ru: "Обеспечение заявки (1%)" },
+  "assistant.financials.perf_guarantee": { kz: "Орындауды қамтамасыз ету (3%)", ru: "Обеспечение исполнения (3%)" },
+  "assistant.financials.product_cost": { kz: "Тауар/Қызмет құны", ru: "Себестоимость" },
+  "assistant.financials.working_capital": { kz: "Айналым қаражаты", ru: "Оборотный капитал" },
+  "assistant.status.title": { kz: "Тендер Статусы", ru: "Статус Тендера" },
+  "assistant.status.published": { kz: "Жарияланды", ru: "Опубликован" },
+  "assistant.status.submitting": { kz: "Өтінім қабылдау", ru: "Прием заявок" },
+  "assistant.status.review": { kz: "Қорытынды", ru: "Итоги" },
+  "assistant.status.deadline": { kz: "Өтінім беру мерзімі", ru: "Срок подачи" },
+  "assistant.checklist.title": { kz: "Құжаттар тізімі (Checklist)", ru: "Список документов (Checklist)" },
+  "assistant.checklist.docs": { kz: "Міндетті құжаттар", ru: "Обязательные документы" },
+  "assistant.checklist.technical": { kz: "Техникалық ерекшелік", ru: "Техническая спецификация" },
+  "assistant.checklist.experience": { kz: "Жұмыс тәжірибесі", ru: "Опыт работы" },
+  "assistant.advice.title": { kz: "AI Ұсыныстары", ru: "AI Рекомендации" },
+  "assistant.advice.desc": { kz: "Бұл тендер бойынша сарапшылық кеңестер:", ru: "Экспертные советы по данному тендеру:" },
 }
 
 type I18nContextType = {
